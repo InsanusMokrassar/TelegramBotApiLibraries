@@ -7,7 +7,8 @@ import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContext
 import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DefaultAdminsCacheAPIRepo
 import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DynamicAdminsCacheSettingsAPI
-import dev.inmo.tgbotapi.types.toChatId
+import dev.inmo.tgbotapi.types.*
+import dev.inmo.tgbotapi.types.ChatMember.abstracts.AdministratorChatMember
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -20,14 +21,16 @@ private val serializationFormat = Cbor
 fun AdminsCacheAPI(
     bot: TelegramBot,
     database: Database,
-    scope: CoroutineScope,
-    repo: dev.inmo.tgbotapi.libraries.cache.admins.DefaultAdminsCacheAPIRepo = DefaultAdminsCacheAPIRepo(
+    scope: CoroutineScope
+) : AdminsCacheAPI = DefaultAdminsCacheAPI(
+    bot,
+    DefaultAdminsCacheAPIRepo(
         ExposedOneToManyKeyValueRepo(
             database,
             { long("chatId") },
             { blob("member") },
             "AdminsTable"
-        ).withMapper(
+        ).withMapper<ChatId, AdministratorChatMember, Identifier, ExposedBlob>(
             keyFromToTo = { chatId },
             valueFromToTo = { ExposedBlob(serializationFormat.encodeToByteArray(this)) },
             keyToToFrom = { toChatId() },
@@ -38,19 +41,21 @@ fun AdminsCacheAPI(
             { long("chatId") },
             { long("datetime") },
             "AdminsUpdatesTimesTable"
-        ).withMapper(
+        ).withMapper<ChatId, Long, Identifier, Long>(
             keyFromToTo = { chatId },
-            keyToToFrom = { toChatId() }
+            valueFromToTo = { this },
+            keyToToFrom = { toChatId() },
+            valueToToFrom = { this }
         ),
         scope
     ),
-    settingsAPI: AdminsCacheSettingsAPI = DynamicAdminsCacheSettingsAPI(
+    DynamicAdminsCacheSettingsAPI(
         ExposedKeyValueRepo(
             database,
             { long("chatId") },
             { blob("settings") },
             "DynamicAdminsCacheSettingsAPI"
-        ).withMapper(
+        ).withMapper<ChatId, AdminsCacheSettings, Identifier, ExposedBlob>(
             keyFromToTo = { chatId },
             valueFromToTo = { ExposedBlob(serializationFormat.encodeToByteArray(this)) },
             keyToToFrom = { toChatId() },
@@ -58,10 +63,6 @@ fun AdminsCacheAPI(
         ),
         scope
     )
-) : AdminsCacheAPI = DefaultAdminsCacheAPI(
-    bot,
-    repo,
-    settingsAPI
 )
 
 fun BehaviourContext.AdminsCacheAPI(database: Database) = AdminsCacheAPI(this, database, this)

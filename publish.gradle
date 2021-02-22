@@ -1,0 +1,57 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+task javadocsJar(type: Jar) {
+    classifier = 'javadoc'
+}
+
+publishing {
+    publications.all {
+        artifact javadocsJar
+
+        pom {
+            description = "${project.name}"
+            name = "${project.name}"
+            url = "https://github.com/InsanusMokrassar/TelegramBotApiLibraries"
+
+            scm {
+                developerConnection = "scm:git:[fetch=]https://github.com/InsanusMokrassar/TelegramBotApiLibraries.git[push=]https://github.com/InsanusMokrassar/TelegramBotApiLibraries.git"
+                url = "https://github.com/InsanusMokrassar/TelegramBotApiLibraries.git"
+            }
+
+            developers {
+                
+                    developer {
+                        id = "InsanusMokrassar"
+                        name = "Ovsiannikov Aleksei"
+                        email = "ovsyannikov.alexey95@gmail.com"
+                    }
+                
+            }
+
+            licenses {
+                
+                    license {
+                        name = "MIT License"
+                        url = "https://opensource.org/licenses/MIT"
+                    }
+                
+            }
+        }
+        repositories {
+            maven {
+                name = "sonatype"
+                url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                credentials {
+                    username = project.hasProperty('SONATYPE_USER') ? project.property('SONATYPE_USER') : System.getenv('SONATYPE_USER')
+                    password = project.hasProperty('SONATYPE_PASSWORD') ? project.property('SONATYPE_PASSWORD') : System.getenv('SONATYPE_PASSWORD')
+                }
+            }
+        }
+    }
+}
+
+signing {
+    useGpgCmd()
+    sign publishing.publications
+}

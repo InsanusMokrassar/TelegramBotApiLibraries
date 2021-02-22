@@ -19,6 +19,6 @@ allprojects {
 
         defaultAndroidSettingsPresetPath = "${rootProject.projectDir.absolutePath}/defaultAndroidSettings.gradle"
 
-        // publishGradlePath = "${rootProject.projectDir.absolutePath}/publish.gradle"
+        publishGradlePath = "${rootProject.projectDir.absolutePath}/publish.gradle"
     }
 }
