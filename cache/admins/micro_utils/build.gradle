@@ -1,0 +1,25 @@
+plugins {
+    id "org.jetbrains.kotlin.multiplatform"
+    id "org.jetbrains.kotlin.plugin.serialization"
+    id "com.android.library"
+}
+
+apply from: "$mppProjectWithSerializationPresetPath"
+
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api "dev.inmo:micro_utils.repos.common:$micro_utils_version"
+                api project(":tgbotapi.libraries.cache.admins.common")
+            }
+        }
+        jvmMain {
+            dependencies {
+                api "dev.inmo:micro_utils.repos.exposed:$micro_utils_version"
+                api "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$kotlin_serialisation_core_version"
+                api "org.jetbrains.exposed:exposed-jdbc:$exposed_version"
+            }
+        }
+    }
+}

@@ -1,7 +1,8 @@
 rootProject.name = 'tgbotapi.libraries'
 
 String[] includes = [
-    ":cache:admins",
+    ":cache:admins:common",
+    ":cache:admins:micro_utils",
     ":cache:media"
 ]
 
