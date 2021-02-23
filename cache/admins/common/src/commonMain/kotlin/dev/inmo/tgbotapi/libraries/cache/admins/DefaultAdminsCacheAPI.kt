@@ -39,10 +39,6 @@ class DefaultAdminsCacheAPI(
         }
     }
 
-    override suspend fun isAdmin(userId: UserId, chatId: ChatId): Boolean = getChatAdmins(chatId) ?.any {
-        it.user.id == userId
-    } == true
-
     override suspend fun settings(): AdminsCacheSettingsAPI = settingsAPI
 
 }
