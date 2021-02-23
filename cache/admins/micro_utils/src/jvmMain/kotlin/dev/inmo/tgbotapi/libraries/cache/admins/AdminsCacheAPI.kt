@@ -8,15 +8,28 @@ import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContext
 import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DefaultAdminsCacheAPIRepo
 import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DynamicAdminsCacheSettingsAPI
 import dev.inmo.tgbotapi.types.*
+import dev.inmo.tgbotapi.types.ChatMember.AdministratorChatMemberImpl
+import dev.inmo.tgbotapi.types.ChatMember.CreatorChatMember
 import dev.inmo.tgbotapi.types.ChatMember.abstracts.AdministratorChatMember
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.serialization.*
 import kotlinx.serialization.cbor.Cbor
-import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 
-private val serializationFormat = Cbor
+private val serializationFormat = Json {
+    ignoreUnknownKeys = true
+    serializersModule = SerializersModule {
+        polymorphic(AdministratorChatMember::class) {
+            subclass(AdministratorChatMemberImpl::class, AdministratorChatMemberImpl.serializer())
+            subclass(CreatorChatMember::class, CreatorChatMember.serializer())
+        }
+        contextual(AdministratorChatMember::class, PolymorphicSerializer(AdministratorChatMember::class))
+    }
+}
 
 fun AdminsCacheAPI(
     bot: TelegramBot,
@@ -28,13 +41,13 @@ fun AdminsCacheAPI(
         ExposedOneToManyKeyValueRepo(
             database,
             { long("chatId") },
-            { blob("member") },
+            { text("member") },
             "AdminsTable"
-        ).withMapper<ChatId, AdministratorChatMember, Identifier, ExposedBlob>(
+        ).withMapper<ChatId, AdministratorChatMember, Identifier, String>(
             keyFromToTo = { chatId },
-            valueFromToTo = { ExposedBlob(serializationFormat.encodeToByteArray(this)) },
+            valueFromToTo = { serializationFormat.encodeToString(this) },
             keyToToFrom = { toChatId() },
-            valueToToFrom = { serializationFormat.decodeFromByteArray(bytes) }
+            valueToToFrom = { serializationFormat.decodeFromString(this) }
         ),
         ExposedKeyValueRepo(
             database,
@@ -53,13 +66,13 @@ fun AdminsCacheAPI(
         ExposedKeyValueRepo(
             database,
             { long("chatId") },
-            { blob("settings") },
+            { text("settings") },
             "DynamicAdminsCacheSettingsAPI"
-        ).withMapper<ChatId, AdminsCacheSettings, Identifier, ExposedBlob>(
+        ).withMapper<ChatId, AdminsCacheSettings, Identifier, String>(
             keyFromToTo = { chatId },
-            valueFromToTo = { ExposedBlob(serializationFormat.encodeToByteArray(this)) },
+            valueFromToTo = { serializationFormat.encodeToString(this) },
             keyToToFrom = { toChatId() },
-            valueToToFrom = { serializationFormat.decodeFromByteArray(bytes) }
+            valueToToFrom = { serializationFormat.decodeFromString(this) }
         ),
         scope
     )
