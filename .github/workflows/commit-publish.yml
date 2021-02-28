@@ -10,10 +10,6 @@ jobs:
           java-version: 1.8
       - name: prebuild
         run: ./gradlew clean build
-      - name: Disallow Concurrent Runs
-        uses: byu-oit/github-action-disallow-concurrent-runs@v2
-        with:
-          token: ${{ github.token }}
       - name: Publish package
         run: ./gradlew --no-parallel publishAllPublicationsToGithubPackagesRepository
         env:
