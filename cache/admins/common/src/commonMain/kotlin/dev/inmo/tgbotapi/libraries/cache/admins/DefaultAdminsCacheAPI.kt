@@ -2,10 +2,10 @@ package dev.inmo.tgbotapi.libraries.cache.admins
 
 import com.soywiz.klock.DateTime
 import dev.inmo.tgbotapi.bot.TelegramBot
+import dev.inmo.tgbotapi.extensions.api.bot.getMe
 import dev.inmo.tgbotapi.extensions.api.chat.get.getChatAdministrators
-import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.types.*
 import dev.inmo.tgbotapi.types.ChatMember.abstracts.AdministratorChatMember
-import dev.inmo.tgbotapi.types.UserId
 import kotlinx.serialization.Serializable
 
 interface DefaultAdminsCacheAPIRepo {
@@ -20,8 +20,18 @@ class DefaultAdminsCacheAPI(
     private val repo: DefaultAdminsCacheAPIRepo,
     private val settingsAPI: AdminsCacheSettingsAPI
 ) : AdminsCacheAPI {
+    private lateinit var botInfo: ExtendedBot
+    private suspend fun getBotInfo(): ExtendedBot = try {
+        botInfo
+    } catch (e: Throwable) {
+        bot.getMe().also { botInfo = it }
+    }
+
     private suspend fun triggerUpdate(chatId: ChatId): List<AdministratorChatMember> {
-        val admins = bot.getChatAdministrators(chatId)
+        val botInfo = getBotInfo()
+        val admins = bot.getChatAdministrators(chatId).filter {
+            botInfo.id != it.user.id
+        }
         repo.setChatAdmins(chatId, admins)
         return admins
     }
