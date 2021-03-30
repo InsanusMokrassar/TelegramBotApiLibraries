@@ -6,6 +6,7 @@ import dev.inmo.tgbotapi.extensions.api.bot.getMe
 import dev.inmo.tgbotapi.extensions.api.chat.get.getChatAdministrators
 import dev.inmo.tgbotapi.types.*
 import dev.inmo.tgbotapi.types.ChatMember.abstracts.AdministratorChatMember
+import dev.inmo.tgbotapi.types.message.abstracts.*
 import kotlinx.serialization.Serializable
 
 interface DefaultAdminsCacheAPIRepo {
@@ -46,6 +47,17 @@ class DefaultAdminsCacheAPI(
                 triggerUpdate(chatId)
             }
             else -> repo.getChatAdmins(chatId) ?: triggerUpdate(chatId)
+        }
+    }
+
+    override suspend fun sentByAdmin(groupContentMessage: GroupContentMessage<*>): Boolean {
+        return when (groupContentMessage) {
+            is AnonymousGroupContentMessage -> true
+            is CommonGroupContentMessage -> isAdmin(
+                groupContentMessage.chat.id,
+                groupContentMessage.user.id
+            )
+            else -> false
         }
     }
 
