@@ -4,7 +4,9 @@ String[] includes = [
     ":cache:admins:common",
     ":cache:admins:micro_utils",
     ":cache:admins:plagubot",
-    ":cache:media"
+    ":cache:media",
+
+    ":fsm:core"
 ]
 
 
