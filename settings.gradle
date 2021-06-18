@@ -6,7 +6,8 @@ String[] includes = [
     ":cache:admins:plagubot",
     ":cache:media",
 
-    ":fsm:core"
+    ":fsm:core",
+    ":fsm:tgbotapi"
 ]
 
 

@@ -14,24 +14,22 @@ private suspend fun <I : State, O : State> launchStateHandling(
 }
 
 class StatesMachine<T : State, I : T, O : T>(
-    private val statesRepo: StatesRepo<T>,
+    private val statesHolder: StatesHolder<T>,
     private val statesQuotaManager: StatesQuotaManager,
     private val handlers: List<StateHandlerHolder<out I, out O>>
 ) : StatesHandler<T, O> {
     override suspend fun handleState(state: T): O? {
-        return statesQuotaManager.doOnQuota(
-            state
-        ) {
+        return statesQuotaManager.doOnQuota(state) {
             launchStateHandling(state, handlers)
         }
     }
 
     fun start(scope: CoroutineScope): Job = scope.launchSafelyWithoutExceptions {
-        val statesFlow = statesRepo.loadStates().asFlow() + statesRepo.onNewState
+        val statesFlow = statesHolder.loadStates().asFlow() + statesHolder.onNewState
         statesFlow.subscribeSafelyWithoutExceptions(this) {
             val newState = handleState(it)
-            newState ?.also { statesRepo.saveState(newState) }
-            statesRepo.removeState(it)
+            newState ?.also { statesHolder.saveState(newState) }
+            statesHolder.removeState(it)
         }
     }
 }
