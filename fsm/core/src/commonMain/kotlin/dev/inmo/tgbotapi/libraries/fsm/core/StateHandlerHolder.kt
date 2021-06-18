@@ -4,8 +4,8 @@ import kotlin.reflect.KClass
 
 class StateHandlerHolder<I : State, O : State>(
     private val inputKlass: KClass<I>,
-    private val delegateTo: StatesHandler<I, O>,
-    private val strict: Boolean = false
+    private val strict: Boolean = false,
+    private val delegateTo: StatesHandler<I, O>
 ) : StatesHandler<State, O> {
     fun checkHandleable(state: State) = state::class == inputKlass || (!strict && inputKlass.isInstance(state))
 
