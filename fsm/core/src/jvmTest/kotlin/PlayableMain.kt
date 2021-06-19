@@ -1,4 +1,6 @@
 import dev.inmo.tgbotapi.libraries.fsm.core.*
+import dev.inmo.tgbotapi.libraries.fsm.core.dsl.buildFSM
+import dev.inmo.tgbotapi.libraries.fsm.core.dsl.strictlyOn
 import kotlinx.coroutines.*
 import kotlin.random.Random
 import kotlin.test.Test
@@ -24,27 +26,25 @@ class PlayableMain {
                 }
             }
 
-            val statesManager = InMemoryStatesManager<TrafficLightState>()
+            val statesManager = InMemoryStatesManager()
 
-            val machine = StatesMachine(
-                statesManager,
-                listOf(
-                    StateHandlerHolder(GreenCommon::class) {
-                        delay(1000L)
-                        YellowCommon(it.context).also(::println)
-                    },
-                    StateHandlerHolder(YellowCommon::class) {
-                        delay(1000L)
-                        RedCommon(it.context).also(::println)
-                    },
-                    StateHandlerHolder(RedCommon::class) {
-                        delay(1000L)
-                        GreenCommon(it.context).also(::println)
-                    }
-                )
-            )
+            val machine = buildFSM {
+                strictlyOn<GreenCommon> {
+                    delay(1000L)
+                    YellowCommon(it.context).also(::println)
+                }
+                strictlyOn<YellowCommon> {
+                    delay(1000L)
+                    RedCommon(it.context).also(::println)
+                }
+                strictlyOn<RedCommon> {
+                    delay(1000L)
+                    GreenCommon(it.context).also(::println)
+                }
+                this.statesManager = statesManager
+            }
 
-            initialStates.forEach { statesManager.startChain(it) }
+            initialStates.forEach { machine.startChain(it) }
 
             val scope = CoroutineScope(Dispatchers.Default)
             machine.start(scope).join()
