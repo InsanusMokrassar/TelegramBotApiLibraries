@@ -51,12 +51,12 @@ class DefaultAdminsCacheAPIRepo(
     }
 
     override suspend fun getChatAdmins(chatId: ChatId): List<AdministratorChatMember>? = suspendCoroutine {
-        actor.offer(GetChatAdminsRepoAction(chatId, it))
+        actor.trySend(GetChatAdminsRepoAction(chatId, it))
     }
     override suspend fun setChatAdmins(chatId: ChatId, chatMembers: List<AdministratorChatMember>) = suspendCoroutine<Unit> {
-        actor.offer(SetChatAdminsRepoAction(chatId, chatMembers, it))
+        actor.trySend(SetChatAdminsRepoAction(chatId, chatMembers, it))
     }
     override suspend fun lastUpdate(chatId: ChatId): DateTime? = suspendCoroutine {
-        actor.offer(GetUpdateDateTimeRepoAction(chatId, it))
+        actor.trySend(GetUpdateDateTimeRepoAction(chatId, it))
     }
 }
