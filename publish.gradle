@@ -19,22 +19,22 @@ publishing {
             }
 
             developers {
-
+                
                     developer {
                         id = "InsanusMokrassar"
                         name = "Ovsiannikov Aleksei"
                         email = "ovsyannikov.alexey95@gmail.com"
                     }
-
+                
             }
 
             licenses {
-
+                
                     license {
                         name = "MIT License"
                         url = "https://opensource.org/licenses/MIT"
                     }
-
+                
             }
         }
         repositories {
@@ -61,12 +61,13 @@ publishing {
         }
     }
 }
-
-if (System.getProperty("signatory.keyId") != null) {
+    
+if (project.hasProperty("signing.gnupg.keyName")) {
     apply plugin: 'signing'
-
+    
     signing {
         useGpgCmd()
+    
         sign publishing.publications
     }
 }
