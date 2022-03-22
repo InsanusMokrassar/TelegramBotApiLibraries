@@ -6,3 +6,13 @@ plugins {
 
 apply from: "$mppProjectWithSerializationPresetPath"
 
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api "dev.inmo:tgbotapi.core:$tgbotapi_version"
+            }
+        }
+    }
+}
+
