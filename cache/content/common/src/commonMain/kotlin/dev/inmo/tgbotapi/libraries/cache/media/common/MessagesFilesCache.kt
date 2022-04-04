@@ -30,7 +30,7 @@ class InMemoryMessagesFilesCache : MessagesFilesCache {
     ) {
         map[chatId to messageIdentifier] = StorageFile(
             filename,
-            byteReadChannelAllocator.invoke().toByteArray()
+            byteReadChannelAllocator.invoke()
         )
     }
 
