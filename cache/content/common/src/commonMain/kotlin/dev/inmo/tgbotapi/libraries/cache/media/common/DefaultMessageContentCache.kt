@@ -10,7 +10,6 @@ import dev.inmo.tgbotapi.types.InputMedia.*
 import dev.inmo.tgbotapi.types.MessageIdentifier
 import dev.inmo.tgbotapi.types.message.content.abstracts.MediaContent
 import dev.inmo.tgbotapi.types.message.content.abstracts.MessageContent
-import dev.inmo.tgbotapi.utils.StorageFile
 import dev.inmo.tgbotapi.utils.asInput
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.core.Input
@@ -66,20 +65,7 @@ class DefaultMessageContentCache(
 
         if (savedSimpleContent is MediaContent) {
             runCatching {
-                val streamAllocator = bot.execute(
-                    DownloadFileStream(
-                        bot.execute(
-                            GetFile(
-                                savedSimpleContent.media.fileId
-                            )
-                        ).filePath
-                    )
-                )
-
-                streamAllocator().apply {
-                    readByte()
-                    cancel()
-                }
+                bot.execute(GetFile(savedSimpleContent.media.fileId))
             }.onFailure {
                 val savedFileContentAllocator = messagesFilesCache.get(chatId, messageId) ?: error("Unexpected absence of $chatId:$messageId file for content ($simpleMessageContentCache)")
                 val newContent = bot.execute(
