@@ -2,17 +2,17 @@ package dev.inmo.tgbotapi.libraries.cache.media.common
 
 import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.MessageIdentifier
+import dev.inmo.tgbotapi.types.message.content.abstracts.MessageContent
 import dev.inmo.tgbotapi.utils.StorageFile
 import io.ktor.utils.io.core.*
 
-interface MessagesFilesCache {
+interface MessagesSimpleCache {
     suspend fun set(
         chatId: ChatId,
         messageIdentifier: MessageIdentifier,
-        filename: String,
-        inputAllocator: suspend () -> Input
+        content: MessageContent
     )
-    suspend fun get(chatId: ChatId, messageIdentifier: MessageIdentifier): StorageFile?
+    suspend fun get(chatId: ChatId, messageIdentifier: MessageIdentifier): MessageContent?
     suspend fun remove(chatId: ChatId, messageIdentifier: MessageIdentifier)
     suspend fun contains(chatId: ChatId, messageIdentifier: MessageIdentifier): Boolean
 }
@@ -22,22 +22,18 @@ interface MessagesFilesCache {
  * start of application creation with usage of [MessageContentCache] with aim to replace this realization by some
  * disks-oriented one
  */
-class InMemoryMessagesFilesCache : MessagesFilesCache {
-    private val map = mutableMapOf<Pair<ChatId, MessageIdentifier>, StorageFile>()
+class InMemoryMessagesSimpleCache : MessagesSimpleCache {
+    private val map = mutableMapOf<Pair<ChatId, MessageIdentifier>, MessageContent>()
 
     override suspend fun set(
         chatId: ChatId,
         messageIdentifier: MessageIdentifier,
-        filename: String,
-        inputAllocator: suspend () -> Input
+        content: MessageContent
     ) {
-        map[chatId to messageIdentifier] = StorageFile(
-            filename,
-            inputAllocator().readBytes()
-        )
+        map[chatId to messageIdentifier] = content
     }
 
-    override suspend fun get(chatId: ChatId, messageIdentifier: MessageIdentifier): StorageFile? {
+    override suspend fun get(chatId: ChatId, messageIdentifier: MessageIdentifier): MessageContent? {
         return map[chatId to messageIdentifier]
     }
 

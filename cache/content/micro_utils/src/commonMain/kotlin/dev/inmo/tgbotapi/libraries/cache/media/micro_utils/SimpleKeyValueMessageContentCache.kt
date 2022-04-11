@@ -2,7 +2,7 @@ package dev.inmo.tgbotapi.libraries.cache.media.micro_utils
 
 import dev.inmo.micro_utils.repos.*
 import dev.inmo.micro_utils.repos.mappers.withMapper
-import dev.inmo.tgbotapi.libraries.cache.media.common.MessageContentCache
+import dev.inmo.tgbotapi.libraries.cache.media.common.MessagesSimpleCache
 import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.MessageIdentifier
 import dev.inmo.tgbotapi.types.message.content.abstracts.MessageContent
@@ -16,23 +16,21 @@ import kotlin.jvm.JvmName
 
 class SimpleKeyValueMessageContentCache(
     private val keyValueRepo: KeyValueRepo<Pair<ChatId, MessageIdentifier>, MessageContent>
-) : MessageContentCache {
-    override suspend fun save(chatId: ChatId, messageId: MessageIdentifier, content: MessageContent): Boolean {
-        return keyValueRepo.runCatching {
-            set(chatId to messageId, content)
-        }.isSuccess
+) : MessagesSimpleCache {
+    override suspend fun set(chatId: ChatId, messageIdentifier: MessageIdentifier, content: MessageContent) {
+        keyValueRepo.set(chatId to messageIdentifier, content)
     }
 
-    override suspend fun get(chatId: ChatId, messageId: MessageIdentifier): MessageContent? {
-        return keyValueRepo.get(chatId to messageId)
+    override suspend fun get(chatId: ChatId, messageIdentifier: MessageIdentifier): MessageContent? {
+        return keyValueRepo.get(chatId to messageIdentifier)
     }
 
-    override suspend fun contains(chatId: ChatId, messageId: MessageIdentifier): Boolean {
-        return keyValueRepo.contains(chatId to messageId)
+    override suspend fun contains(chatId: ChatId, messageIdentifier: MessageIdentifier): Boolean {
+        return keyValueRepo.contains(chatId to messageIdentifier)
     }
 
-    override suspend fun remove(chatId: ChatId, messageId: MessageIdentifier) {
-        keyValueRepo.unset(chatId to messageId)
+    override suspend fun remove(chatId: ChatId, messageIdentifier: MessageIdentifier) {
+        keyValueRepo.unset(chatId to messageIdentifier)
     }
 }
 

@@ -10,17 +10,20 @@ import dev.inmo.tgbotapi.types.InputMedia.*
 import dev.inmo.tgbotapi.types.MessageIdentifier
 import dev.inmo.tgbotapi.types.message.content.abstracts.MediaContent
 import dev.inmo.tgbotapi.types.message.content.abstracts.MessageContent
+import dev.inmo.tgbotapi.utils.StorageFile
+import dev.inmo.tgbotapi.utils.asInput
 import io.ktor.utils.io.cancel
+import io.ktor.utils.io.core.Input
 
-class DefaultMessageContentCache<T>(
+class DefaultMessageContentCache(
     private val bot: TelegramBot,
-    private val simpleMessageContentCache: MessageContentCache,
-    private val messagesFilesCache: MessagesFilesCache,
-    private val filesRefreshingChatId: ChatId
+    private val filesRefreshingChatId: ChatId,
+    private val simpleMessageContentCache: MessagesSimpleCache = InMemoryMessagesSimpleCache(),
+    private val messagesFilesCache: MessagesFilesCache = InMemoryMessagesFilesCache()
 ) : MessageContentCache {
     override suspend fun save(chatId: ChatId, messageId: MessageIdentifier, content: MessageContent): Boolean {
-        runCatching {
-            if (content is MediaContent) {
+        return when (content) {
+            is MediaContent -> {
                 val extendedInfo = bot.execute(
                     GetFile(content.media.fileId)
                 )
@@ -29,15 +32,33 @@ class DefaultMessageContentCache<T>(
                         extendedInfo.filePath
                     )
                 )
-                messagesFilesCache.set(chatId, messageId, extendedInfo.fileName, allocator)
+
+                save(chatId, messageId, content, extendedInfo.fileName) {
+                    allocator.invoke().asInput()
+                }
             }
+            else -> simpleMessageContentCache.runCatching {
+                set(chatId, messageId, content)
+            }.isSuccess
+        }
+    }
+
+    override suspend fun save(
+        chatId: ChatId,
+        messageId: MessageIdentifier,
+        content: MediaContent,
+        filename: String,
+        inputAllocator: suspend () -> Input
+    ): Boolean {
+        runCatching {
+            messagesFilesCache.set(chatId, messageId, filename, inputAllocator)
         }.onFailure {
             return false
         }
 
-        return simpleMessageContentCache.save(
-            chatId, messageId, content
-        )
+        return simpleMessageContentCache.runCatching {
+            set(chatId, messageId, content)
+        }.isSuccess
     }
 
     override suspend fun get(chatId: ChatId, messageId: MessageIdentifier): MessageContent? {
@@ -101,7 +122,7 @@ class DefaultMessageContentCache<T>(
                     }
                 )
 
-                simpleMessageContentCache.save(chatId, messageId, newContent.content)
+                simpleMessageContentCache.set(chatId, messageId, newContent.content)
                 return newContent.content
             }
         }

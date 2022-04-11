@@ -3,6 +3,7 @@ package dev.inmo.tgbotapi.libraries.cache.media.common
 import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.MessageIdentifier
 import dev.inmo.tgbotapi.utils.*
+import io.ktor.utils.io.core.Input
 import io.ktor.utils.io.core.copyTo
 import io.ktor.utils.io.streams.asInput
 import io.ktor.utils.io.streams.asOutput
@@ -42,13 +43,13 @@ class InFilesMessagesFilesCache(
         chatId: ChatId,
         messageIdentifier: MessageIdentifier,
         filename: String,
-        byteReadChannelAllocator: ByteReadChannelAllocator
+        inputAllocator: suspend () -> Input
     ) {
         val fullFileName = fileName(chatId, messageIdentifier, filename)
         val file = File(folderFile, fullFileName).apply {
             delete()
         }
-        byteReadChannelAllocator.invoke().asInput().use { input ->
+        inputAllocator().use { input ->
             file.outputStream().asOutput().use { output ->
                 input.copyTo(output)
             }
