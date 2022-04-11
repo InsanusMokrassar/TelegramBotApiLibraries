@@ -7,20 +7,18 @@ import dev.inmo.tgbotapi.requests.get.GetFile
 import dev.inmo.tgbotapi.requests.send.media.*
 import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.InputMedia.*
-import dev.inmo.tgbotapi.types.MessageIdentifier
 import dev.inmo.tgbotapi.types.message.content.abstracts.MediaContent
 import dev.inmo.tgbotapi.types.message.content.abstracts.MessageContent
 import dev.inmo.tgbotapi.utils.asInput
-import io.ktor.utils.io.cancel
 import io.ktor.utils.io.core.Input
 
-class DefaultMessageContentCache(
+class DefaultMessageContentCache<K>(
     private val bot: TelegramBot,
     private val filesRefreshingChatId: ChatId,
-    private val simpleMessageContentCache: MessagesSimpleCache = InMemoryMessagesSimpleCache(),
-    private val messagesFilesCache: MessagesFilesCache = InMemoryMessagesFilesCache()
-) : MessageContentCache {
-    override suspend fun save(chatId: ChatId, messageId: MessageIdentifier, content: MessageContent): Boolean {
+    private val simpleMessageContentCache: MessagesSimpleCache<K>,
+    private val messagesFilesCache: MessagesFilesCache<K> = InMemoryMessagesFilesCache()
+) : MessageContentCache<K> {
+    override suspend fun save(content: MessageContent): K {
         return when (content) {
             is MediaContent -> {
                 val extendedInfo = bot.execute(
@@ -32,42 +30,37 @@ class DefaultMessageContentCache(
                     )
                 )
 
-                save(chatId, messageId, content, extendedInfo.fileName) {
+                save(content, extendedInfo.fileName) {
                     allocator.invoke().asInput()
                 }
             }
-            else -> simpleMessageContentCache.runCatching {
-                set(chatId, messageId, content)
-            }.isSuccess
+            else -> simpleMessageContentCache.add(content)
         }
     }
 
     override suspend fun save(
-        chatId: ChatId,
-        messageId: MessageIdentifier,
         content: MediaContent,
         filename: String,
         inputAllocator: suspend () -> Input
-    ): Boolean {
+    ): K {
+        val key = simpleMessageContentCache.add(content)
         runCatching {
-            messagesFilesCache.set(chatId, messageId, filename, inputAllocator)
+            messagesFilesCache.set(key, filename, inputAllocator)
         }.onFailure {
-            return false
+            simpleMessageContentCache.remove(key)
         }
 
-        return simpleMessageContentCache.runCatching {
-            set(chatId, messageId, content)
-        }.isSuccess
+        return key
     }
 
-    override suspend fun get(chatId: ChatId, messageId: MessageIdentifier): MessageContent? {
-        val savedSimpleContent = simpleMessageContentCache.get(chatId, messageId) ?: return null
+    override suspend fun get(k: K): MessageContent? {
+        val savedSimpleContent = simpleMessageContentCache.get(k) ?: return null
 
         if (savedSimpleContent is MediaContent) {
             runCatching {
                 bot.execute(GetFile(savedSimpleContent.media.fileId))
             }.onFailure {
-                val savedFileContentAllocator = messagesFilesCache.get(chatId, messageId) ?: error("Unexpected absence of $chatId:$messageId file for content ($simpleMessageContentCache)")
+                val savedFileContentAllocator = messagesFilesCache.get(k) ?: error("Unexpected absence of $k file for content ($simpleMessageContentCache)")
                 val newContent = bot.execute(
                     when (savedSimpleContent.asInputMedia()) {
                         is InputMediaAnimation -> SendAnimation(
@@ -108,19 +101,28 @@ class DefaultMessageContentCache(
                     }
                 )
 
-                simpleMessageContentCache.set(chatId, messageId, newContent.content)
+                simpleMessageContentCache.update(k, newContent.content)
                 return newContent.content
             }
         }
         return savedSimpleContent
     }
 
-    override suspend fun contains(chatId: ChatId, messageId: MessageIdentifier): Boolean {
-        return simpleMessageContentCache.contains(chatId, messageId)
+    override suspend fun contains(k: K): Boolean {
+        return simpleMessageContentCache.contains(k)
     }
 
-    override suspend fun remove(chatId: ChatId, messageId: MessageIdentifier) {
-        simpleMessageContentCache.remove(chatId, messageId)
-        messagesFilesCache.remove(chatId, messageId)
+    override suspend fun remove(k: K) {
+        simpleMessageContentCache.remove(k)
+        messagesFilesCache.remove(k)
+    }
+
+    companion object {
+        operator fun invoke(
+            bot: TelegramBot,
+            filesRefreshingChatId: ChatId,
+            simpleMessageContentCache: MessagesSimpleCache<String> = InMemoryMessagesSimpleCache(),
+            messagesFilesCache: MessagesFilesCache<String> = InMemoryMessagesFilesCache()
+        ) = DefaultMessageContentCache(bot, filesRefreshingChatId, simpleMessageContentCache, messagesFilesCache)
     }
 }

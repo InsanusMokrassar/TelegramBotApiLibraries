@@ -1,7 +1,5 @@
 package dev.inmo.tgbotapi.libraries.cache.media.common
 
-import dev.inmo.tgbotapi.types.ChatId
-import dev.inmo.tgbotapi.types.MessageIdentifier
 import dev.inmo.tgbotapi.utils.*
 import io.ktor.utils.io.core.Input
 import io.ktor.utils.io.core.copyTo
@@ -9,12 +7,13 @@ import io.ktor.utils.io.streams.asInput
 import io.ktor.utils.io.streams.asOutput
 import java.io.File
 
-class InFilesMessagesFilesCache(
-    private val folderFile: File
-) : MessagesFilesCache {
-    private val Pair<ChatId, MessageIdentifier>.storageFile: StorageFile?
+class InFilesMessagesFilesCache<K>(
+    private val folderFile: File,
+    private val filePrefixBuilder: (K) -> String
+) : MessagesFilesCache<K> {
+    private val K.storageFile: StorageFile?
         get() {
-            val prefix = filePrefix(first, second)
+            val prefix = filePrefix(this)
             val filename = folderFile.list() ?.firstOrNull { it.startsWith(prefix) } ?: return null
             val file = File(folderFile, filename)
             val storageFileFilename = file.name.removePrefix("$prefix ")
@@ -31,21 +30,14 @@ class InFilesMessagesFilesCache(
         folderFile.mkdirs()
     }
 
-    private fun filePrefix(chatId: ChatId, messageIdentifier: MessageIdentifier): String {
-        return "${chatId.chatId} $messageIdentifier"
+    private fun filePrefix(k: K): String = filePrefixBuilder(k)
+
+    private fun fileName(k: K, filename: String): String {
+        return "${filePrefix(k)} $filename"
     }
 
-    private fun fileName(chatId: ChatId, messageIdentifier: MessageIdentifier, filename: String): String {
-        return "${chatId.chatId} $messageIdentifier $filename"
-    }
-
-    override suspend fun set(
-        chatId: ChatId,
-        messageIdentifier: MessageIdentifier,
-        filename: String,
-        inputAllocator: suspend () -> Input
-    ) {
-        val fullFileName = fileName(chatId, messageIdentifier, filename)
+    override suspend fun set(k: K, filename: String, inputAllocator: suspend () -> Input) {
+        val fullFileName = fileName(k, filename)
         val file = File(folderFile, fullFileName).apply {
             delete()
         }
@@ -56,12 +48,12 @@ class InFilesMessagesFilesCache(
         }
     }
 
-    override suspend fun get(chatId: ChatId, messageIdentifier: MessageIdentifier): StorageFile? {
-        return (chatId to messageIdentifier).storageFile
+    override suspend fun get(k: K): StorageFile? {
+        return k.storageFile
     }
 
-    override suspend fun remove(chatId: ChatId, messageIdentifier: MessageIdentifier) {
-        val prefix = filePrefix(chatId, messageIdentifier)
+    override suspend fun remove(k: K) {
+        val prefix = filePrefix(k)
         folderFile.listFiles() ?.forEach {
             if (it.name.startsWith(prefix)) {
                 it.delete()
@@ -69,8 +61,14 @@ class InFilesMessagesFilesCache(
         }
     }
 
-    override suspend fun contains(chatId: ChatId, messageIdentifier: MessageIdentifier): Boolean {
-        val prefix = filePrefix(chatId, messageIdentifier)
+    override suspend fun contains(k: K): Boolean {
+        val prefix = filePrefix(k)
         return folderFile.list() ?.any { it.startsWith(prefix) } == true
+    }
+
+    companion object {
+        operator fun invoke(folderFile: File) = InFilesMessagesFilesCache<String>(
+            folderFile
+        ) { it }
     }
 }

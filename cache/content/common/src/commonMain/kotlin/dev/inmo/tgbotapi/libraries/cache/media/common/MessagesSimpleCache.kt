@@ -1,20 +1,14 @@
 package dev.inmo.tgbotapi.libraries.cache.media.common
 
-import dev.inmo.tgbotapi.types.ChatId
-import dev.inmo.tgbotapi.types.MessageIdentifier
+import com.benasher44.uuid.uuid4
 import dev.inmo.tgbotapi.types.message.content.abstracts.MessageContent
-import dev.inmo.tgbotapi.utils.StorageFile
-import io.ktor.utils.io.core.*
 
-interface MessagesSimpleCache {
-    suspend fun set(
-        chatId: ChatId,
-        messageIdentifier: MessageIdentifier,
-        content: MessageContent
-    )
-    suspend fun get(chatId: ChatId, messageIdentifier: MessageIdentifier): MessageContent?
-    suspend fun remove(chatId: ChatId, messageIdentifier: MessageIdentifier)
-    suspend fun contains(chatId: ChatId, messageIdentifier: MessageIdentifier): Boolean
+interface MessagesSimpleCache<K> {
+    suspend fun add(content: MessageContent): K
+    suspend fun update(k: K, content: MessageContent): Boolean
+    suspend fun get(k: K): MessageContent?
+    suspend fun remove(k: K)
+    suspend fun contains(k: K): Boolean
 }
 
 /**
@@ -22,27 +16,48 @@ interface MessagesSimpleCache {
  * start of application creation with usage of [MessageContentCache] with aim to replace this realization by some
  * disks-oriented one
  */
-class InMemoryMessagesSimpleCache : MessagesSimpleCache {
-    private val map = mutableMapOf<Pair<ChatId, MessageIdentifier>, MessageContent>()
+class InMemoryMessagesSimpleCache<K>(
+    private val keyGenerator: () -> K
+) : MessagesSimpleCache<K> {
+    private val map = mutableMapOf<K, MessageContent>()
 
-    override suspend fun set(
-        chatId: ChatId,
-        messageIdentifier: MessageIdentifier,
+    override suspend fun add(
         content: MessageContent
-    ) {
-        map[chatId to messageIdentifier] = content
+    ): K {
+        val key = keyGenerator()
+        map[key] = content
+        return key
     }
 
-    override suspend fun get(chatId: ChatId, messageIdentifier: MessageIdentifier): MessageContent? {
-        return map[chatId to messageIdentifier]
+    override suspend fun update(
+        k: K,
+        content: MessageContent
+    ): Boolean {
+        return map.runCatching {
+            if (contains(k)) {
+                put(k, content)
+                true
+            } else {
+                false
+            }
+        }.getOrDefault(false)
     }
 
-    override suspend fun remove(chatId: ChatId, messageIdentifier: MessageIdentifier) {
-        map.remove(chatId to messageIdentifier)
+    override suspend fun get(k: K): MessageContent? {
+        return map[k]
     }
 
-    override suspend fun contains(chatId: ChatId, messageIdentifier: MessageIdentifier): Boolean {
-        return map.contains(chatId to messageIdentifier)
+    override suspend fun remove(k: K) {
+        map.remove(k)
     }
 
+    override suspend fun contains(k: K): Boolean {
+        return map.contains(k)
+    }
+
+    companion object {
+        operator fun invoke() = InMemoryMessagesSimpleCache {
+            uuid4().toString()
+        }
+    }
 }

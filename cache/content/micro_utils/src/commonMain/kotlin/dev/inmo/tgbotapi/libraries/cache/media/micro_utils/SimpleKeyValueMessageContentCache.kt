@@ -1,5 +1,6 @@
 package dev.inmo.tgbotapi.libraries.cache.media.micro_utils
 
+import com.benasher44.uuid.uuid4
 import dev.inmo.micro_utils.repos.*
 import dev.inmo.micro_utils.repos.mappers.withMapper
 import dev.inmo.tgbotapi.libraries.cache.media.common.MessagesSimpleCache
@@ -14,23 +15,44 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlin.js.JsName
 import kotlin.jvm.JvmName
 
-class SimpleKeyValueMessageContentCache(
-    private val keyValueRepo: KeyValueRepo<Pair<ChatId, MessageIdentifier>, MessageContent>
-) : MessagesSimpleCache {
-    override suspend fun set(chatId: ChatId, messageIdentifier: MessageIdentifier, content: MessageContent) {
-        keyValueRepo.set(chatId to messageIdentifier, content)
+class SimpleKeyValueMessageContentCache<K>(
+    private val keyValueRepo: KeyValueRepo<K, MessageContent>,
+    private val keyGenerator: () -> K
+) : MessagesSimpleCache<K> {
+    override suspend fun add(content: MessageContent): K {
+        val key = keyGenerator()
+        keyValueRepo.set(key, content)
+
+        return key
     }
 
-    override suspend fun get(chatId: ChatId, messageIdentifier: MessageIdentifier): MessageContent? {
-        return keyValueRepo.get(chatId to messageIdentifier)
+    override suspend fun update(k: K, content: MessageContent): Boolean {
+        return keyValueRepo.runCatching {
+            if (contains(k)) {
+                keyValueRepo.set(k, content)
+                true
+            } else {
+                false
+            }
+        }.getOrDefault(false)
     }
 
-    override suspend fun contains(chatId: ChatId, messageIdentifier: MessageIdentifier): Boolean {
-        return keyValueRepo.contains(chatId to messageIdentifier)
+    override suspend fun get(k: K): MessageContent? {
+        return keyValueRepo.get(k)
     }
 
-    override suspend fun remove(chatId: ChatId, messageIdentifier: MessageIdentifier) {
-        keyValueRepo.unset(chatId to messageIdentifier)
+    override suspend fun contains(k: K): Boolean {
+        return keyValueRepo.contains(k)
+    }
+
+    override suspend fun remove(k: K) {
+        keyValueRepo.unset(k)
+    }
+
+    companion object {
+        operator fun invoke(
+            keyValueRepo: KeyValueRepo<String, MessageContent>
+        ) = SimpleKeyValueMessageContentCache(keyValueRepo) { uuid4().toString() }
     }
 }
 

@@ -5,16 +5,11 @@ import dev.inmo.tgbotapi.types.MessageIdentifier
 import dev.inmo.tgbotapi.utils.StorageFile
 import io.ktor.utils.io.core.*
 
-interface MessagesFilesCache {
-    suspend fun set(
-        chatId: ChatId,
-        messageIdentifier: MessageIdentifier,
-        filename: String,
-        inputAllocator: suspend () -> Input
-    )
-    suspend fun get(chatId: ChatId, messageIdentifier: MessageIdentifier): StorageFile?
-    suspend fun remove(chatId: ChatId, messageIdentifier: MessageIdentifier)
-    suspend fun contains(chatId: ChatId, messageIdentifier: MessageIdentifier): Boolean
+interface MessagesFilesCache<K> {
+    suspend fun set(k: K, filename: String, inputAllocator: suspend () -> Input)
+    suspend fun get(k: K): StorageFile?
+    suspend fun remove(k: K)
+    suspend fun contains(k: K): Boolean
 }
 
 /**
@@ -22,31 +17,25 @@ interface MessagesFilesCache {
  * start of application creation with usage of [MessageContentCache] with aim to replace this realization by some
  * disks-oriented one
  */
-class InMemoryMessagesFilesCache : MessagesFilesCache {
-    private val map = mutableMapOf<Pair<ChatId, MessageIdentifier>, StorageFile>()
+class InMemoryMessagesFilesCache<K> : MessagesFilesCache<K> {
+    private val map = mutableMapOf<K, StorageFile>()
 
-    override suspend fun set(
-        chatId: ChatId,
-        messageIdentifier: MessageIdentifier,
-        filename: String,
-        inputAllocator: suspend () -> Input
-    ) {
-        map[chatId to messageIdentifier] = StorageFile(
+    override suspend fun set(k: K, filename: String, inputAllocator: suspend () -> Input) {
+        map[k] = StorageFile(
             filename,
             inputAllocator().readBytes()
         )
     }
 
-    override suspend fun get(chatId: ChatId, messageIdentifier: MessageIdentifier): StorageFile? {
-        return map[chatId to messageIdentifier]
+    override suspend fun get(k: K): StorageFile? {
+        return map[k]
     }
 
-    override suspend fun remove(chatId: ChatId, messageIdentifier: MessageIdentifier) {
-        map.remove(chatId to messageIdentifier)
+    override suspend fun remove(k: K) {
+        map.remove(k)
     }
 
-    override suspend fun contains(chatId: ChatId, messageIdentifier: MessageIdentifier): Boolean {
-        return map.contains(chatId to messageIdentifier)
+    override suspend fun contains(k: K): Boolean {
+        return map.contains(k)
     }
-
 }
