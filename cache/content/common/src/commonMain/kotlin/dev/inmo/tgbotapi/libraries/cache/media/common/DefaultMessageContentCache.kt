@@ -52,6 +52,10 @@ class DefaultMessageContentCache<K>(
             messagesFilesCache.set(key, filename, inputAllocator)
         }.onFailure {
             simpleMessageContentCache.remove(key)
+        }.onSuccess {
+            with(mediaFileActualityChecker) {
+                bot.saved(content)
+            }
         }
 
         return key

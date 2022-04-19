@@ -11,6 +11,7 @@ import dev.inmo.tgbotapi.types.message.content.abstracts.MediaContent
 
 fun interface MediaFileActualityChecker {
     suspend fun TelegramBot.isActual(mediaContent: MediaContent): Boolean
+    suspend fun TelegramBot.saved(mediaContent: MediaContent) {}
 
     class Default(
         private val checkingChatId: ChatId
@@ -45,6 +46,10 @@ fun interface MediaFileActualityChecker {
             } else {
                 true
             }
+        }
+
+        override suspend fun TelegramBot.saved(mediaContent: MediaContent) {
+            fileIdChecksMap[mediaContent.media.fileId] = DateTime.now()
         }
     }
 }
