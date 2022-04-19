@@ -1,6 +1,7 @@
 package dev.inmo.tgbotapi.libraries.cache.media.common
 
 import dev.inmo.tgbotapi.bot.TelegramBot
+import dev.inmo.tgbotapi.requests.DeleteMessage
 import dev.inmo.tgbotapi.requests.DownloadFileStream
 import dev.inmo.tgbotapi.requests.abstracts.MultipartFile
 import dev.inmo.tgbotapi.requests.get.GetFile
@@ -16,6 +17,9 @@ class DefaultMessageContentCache<K>(
     private val bot: TelegramBot,
     private val filesRefreshingChatId: ChatId,
     private val simpleMessageContentCache: MessagesSimpleCache<K>,
+    private val mediaFileActualityChecker: MediaFileActualityChecker = MediaFileActualityChecker.WithDelay(
+        MediaFileActualityChecker.Default(filesRefreshingChatId)
+    ),
     private val messagesFilesCache: MessagesFilesCache<K> = InMemoryMessagesFilesCache()
 ) : MessageContentCache<K> {
     override suspend fun save(content: MessageContent): K {
@@ -56,54 +60,50 @@ class DefaultMessageContentCache<K>(
     override suspend fun get(k: K): MessageContent? {
         val savedSimpleContent = simpleMessageContentCache.get(k) ?: return null
 
-        if (savedSimpleContent is MediaContent) {
-            runCatching {
-                bot.execute(GetFile(savedSimpleContent.media.fileId))
-            }.onFailure {
-                val savedFileContentAllocator = messagesFilesCache.get(k) ?: error("Unexpected absence of $k file for content ($simpleMessageContentCache)")
-                val newContent = bot.execute(
-                    when (savedSimpleContent.asInputMedia()) {
-                        is InputMediaAnimation -> SendAnimation(
-                            filesRefreshingChatId,
-                            MultipartFile(
-                                savedFileContentAllocator
-                            ),
-                            disableNotification = true
-                        )
-                        is InputMediaAudio -> SendAudio(
-                            filesRefreshingChatId,
-                            MultipartFile(
-                                savedFileContentAllocator
-                            ),
-                            disableNotification = true
-                        )
-                        is InputMediaVideo -> SendVideo(
-                            filesRefreshingChatId,
-                            MultipartFile(
-                                savedFileContentAllocator
-                            ),
-                            disableNotification = true
-                        )
-                        is InputMediaDocument -> SendDocument(
-                            filesRefreshingChatId,
-                            MultipartFile(
-                                savedFileContentAllocator
-                            ),
-                            disableNotification = true
-                        )
-                        is InputMediaPhoto -> SendPhoto(
-                            filesRefreshingChatId,
-                            MultipartFile(
-                                savedFileContentAllocator
-                            ),
-                            disableNotification = true
-                        )
-                    }
-                )
+        if (savedSimpleContent is MediaContent && !with(mediaFileActualityChecker) { bot.isActual(savedSimpleContent) }) {
+            val savedFileContentAllocator = messagesFilesCache.get(k) ?: error("Unexpected absence of $k file for content ($simpleMessageContentCache)")
+            val newContent = bot.execute(
+                when (savedSimpleContent.asInputMedia()) {
+                    is InputMediaAnimation -> SendAnimation(
+                        filesRefreshingChatId,
+                        MultipartFile(
+                            savedFileContentAllocator
+                        ),
+                        disableNotification = true
+                    )
+                    is InputMediaAudio -> SendAudio(
+                        filesRefreshingChatId,
+                        MultipartFile(
+                            savedFileContentAllocator
+                        ),
+                        disableNotification = true
+                    )
+                    is InputMediaVideo -> SendVideo(
+                        filesRefreshingChatId,
+                        MultipartFile(
+                            savedFileContentAllocator
+                        ),
+                        disableNotification = true
+                    )
+                    is InputMediaDocument -> SendDocument(
+                        filesRefreshingChatId,
+                        MultipartFile(
+                            savedFileContentAllocator
+                        ),
+                        disableNotification = true
+                    )
+                    is InputMediaPhoto -> SendPhoto(
+                        filesRefreshingChatId,
+                        MultipartFile(
+                            savedFileContentAllocator
+                        ),
+                        disableNotification = true
+                    )
+                }
+            )
 
-                simpleMessageContentCache.update(k, newContent.content)
-                return newContent.content
-            }
+            simpleMessageContentCache.update(k, newContent.content)
+            return newContent.content
         }
         return savedSimpleContent
     }
@@ -122,7 +122,10 @@ class DefaultMessageContentCache<K>(
             bot: TelegramBot,
             filesRefreshingChatId: ChatId,
             simpleMessageContentCache: MessagesSimpleCache<String> = InMemoryMessagesSimpleCache(),
+            mediaFileActualityChecker: MediaFileActualityChecker = MediaFileActualityChecker.WithDelay(
+                MediaFileActualityChecker.Default(filesRefreshingChatId)
+            ),
             messagesFilesCache: MessagesFilesCache<String> = InMemoryMessagesFilesCache()
-        ) = DefaultMessageContentCache(bot, filesRefreshingChatId, simpleMessageContentCache, messagesFilesCache)
+        ) = DefaultMessageContentCache(bot, filesRefreshingChatId, simpleMessageContentCache, mediaFileActualityChecker, messagesFilesCache)
     }
 }
