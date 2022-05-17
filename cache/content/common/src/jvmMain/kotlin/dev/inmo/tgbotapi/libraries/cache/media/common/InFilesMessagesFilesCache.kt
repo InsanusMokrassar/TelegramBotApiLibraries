@@ -1,6 +1,6 @@
 package dev.inmo.tgbotapi.libraries.cache.media.common
 
-import dev.inmo.tgbotapi.utils.*
+import dev.inmo.tgbotapi.requests.abstracts.MultipartFile
 import io.ktor.utils.io.core.Input
 import io.ktor.utils.io.core.copyTo
 import io.ktor.utils.io.streams.asInput
@@ -11,16 +11,14 @@ class InFilesMessagesFilesCache<K>(
     private val folderFile: File,
     private val filePrefixBuilder: (K) -> String
 ) : MessagesFilesCache<K> {
-    private val K.storageFile: StorageFile?
+    private val K.multipartFile: MultipartFile?
         get() {
             val prefix = filePrefix(this)
             val filename = folderFile.list() ?.firstOrNull { it.startsWith(prefix) } ?: return null
             val file = File(folderFile, filename)
             val storageFileFilename = file.name.removePrefix("$prefix ")
 
-            return StorageFile(
-                StorageFileInfo(storageFileFilename)
-            ) {
+            return MultipartFile(storageFileFilename) {
                 file.inputStream().asInput()
             }
         }
@@ -48,8 +46,8 @@ class InFilesMessagesFilesCache<K>(
         }
     }
 
-    override suspend fun get(k: K): StorageFile? {
-        return k.storageFile
+    override suspend fun get(k: K): MultipartFile? {
+        return k.multipartFile
     }
 
     override suspend fun remove(k: K) {

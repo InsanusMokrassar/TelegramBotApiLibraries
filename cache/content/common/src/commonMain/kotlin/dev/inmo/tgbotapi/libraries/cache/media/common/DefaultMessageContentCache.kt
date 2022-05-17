@@ -1,15 +1,13 @@
 package dev.inmo.tgbotapi.libraries.cache.media.common
 
 import dev.inmo.tgbotapi.bot.TelegramBot
-import dev.inmo.tgbotapi.requests.DeleteMessage
 import dev.inmo.tgbotapi.requests.DownloadFileStream
-import dev.inmo.tgbotapi.requests.abstracts.MultipartFile
 import dev.inmo.tgbotapi.requests.get.GetFile
 import dev.inmo.tgbotapi.requests.send.media.*
 import dev.inmo.tgbotapi.types.ChatId
-import dev.inmo.tgbotapi.types.InputMedia.*
-import dev.inmo.tgbotapi.types.message.content.abstracts.MediaContent
-import dev.inmo.tgbotapi.types.message.content.abstracts.MessageContent
+import dev.inmo.tgbotapi.types.media.*
+import dev.inmo.tgbotapi.types.message.content.MediaContent
+import dev.inmo.tgbotapi.types.message.content.MessageContent
 import dev.inmo.tgbotapi.utils.asInput
 import io.ktor.utils.io.core.Input
 
@@ -22,8 +20,8 @@ class DefaultMessageContentCache<K>(
     ),
     private val messagesFilesCache: MessagesFilesCache<K> = InMemoryMessagesFilesCache()
 ) : MessageContentCache<K> {
-    override suspend fun save(content: MessageContent): K {
-        return when (content) {
+    override suspend fun save(k: K, content: MessageContent) {
+        when (content) {
             is MediaContent -> {
                 val extendedInfo = bot.execute(
                     GetFile(content.media.fileId)
@@ -34,31 +32,30 @@ class DefaultMessageContentCache<K>(
                     )
                 )
 
-                save(content, extendedInfo.fileName) {
+                save(k, content, extendedInfo.fileName) {
                     allocator.invoke().asInput()
                 }
             }
-            else -> simpleMessageContentCache.add(content)
+            else -> simpleMessageContentCache.set(k, content)
         }
     }
 
     override suspend fun save(
+        k: K,
         content: MediaContent,
         filename: String,
         inputAllocator: suspend () -> Input
-    ): K {
-        val key = simpleMessageContentCache.add(content)
+    ) {
+        simpleMessageContentCache.set(k, content)
         runCatching {
-            messagesFilesCache.set(key, filename, inputAllocator)
+            messagesFilesCache.set(k, filename, inputAllocator)
         }.onFailure {
-            simpleMessageContentCache.remove(key)
+            simpleMessageContentCache.remove(k)
         }.onSuccess {
             with(mediaFileActualityChecker) {
                 bot.saved(content)
             }
         }
-
-        return key
     }
 
     override suspend fun get(k: K): MessageContent? {
@@ -67,40 +64,30 @@ class DefaultMessageContentCache<K>(
         if (savedSimpleContent is MediaContent && !with(mediaFileActualityChecker) { bot.isActual(savedSimpleContent) }) {
             val savedFileContentAllocator = messagesFilesCache.get(k) ?: error("Unexpected absence of $k file for content ($simpleMessageContentCache)")
             val newContent = bot.execute(
-                when (savedSimpleContent.asInputMedia()) {
-                    is InputMediaAnimation -> SendAnimation(
+                when (savedSimpleContent.asTelegramMedia()) {
+                    is TelegramMediaAnimation -> SendAnimation(
                         filesRefreshingChatId,
-                        MultipartFile(
-                            savedFileContentAllocator
-                        ),
+                        savedFileContentAllocator,
                         disableNotification = true
                     )
-                    is InputMediaAudio -> SendAudio(
+                    is TelegramMediaAudio -> SendAudio(
                         filesRefreshingChatId,
-                        MultipartFile(
-                            savedFileContentAllocator
-                        ),
+                        savedFileContentAllocator,
                         disableNotification = true
                     )
-                    is InputMediaVideo -> SendVideo(
+                    is TelegramMediaVideo -> SendVideo(
                         filesRefreshingChatId,
-                        MultipartFile(
-                            savedFileContentAllocator
-                        ),
+                        savedFileContentAllocator,
                         disableNotification = true
                     )
-                    is InputMediaDocument -> SendDocument(
+                    is TelegramMediaDocument -> SendDocument(
                         filesRefreshingChatId,
-                        MultipartFile(
-                            savedFileContentAllocator
-                        ),
+                        savedFileContentAllocator,
                         disableNotification = true
                     )
-                    is InputMediaPhoto -> SendPhoto(
+                    is TelegramMediaPhoto -> SendPhoto(
                         filesRefreshingChatId,
-                        MultipartFile(
-                            savedFileContentAllocator
-                        ),
+                        savedFileContentAllocator,
                         disableNotification = true
                     )
                 }

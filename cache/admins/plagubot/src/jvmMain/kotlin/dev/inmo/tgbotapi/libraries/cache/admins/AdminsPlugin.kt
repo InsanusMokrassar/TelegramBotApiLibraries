@@ -8,10 +8,17 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.json.JsonObject
 import org.jetbrains.exposed.sql.Database
+import org.koin.core.Koin
+import org.koin.core.module.Module
+import org.koin.core.scope.Scope
 
-val Map<String, Any>.adminsPlugin: AdminsPlugin?
-    get() = get("admins") as? AdminsPlugin
+val Scope.adminsPlugin: AdminsPlugin?
+    get() = getOrNull()
+
+val Koin.adminsPlugin: AdminsPlugin?
+    get() = getOrNull()
 
 @Serializable
 class AdminsPlugin(
@@ -35,18 +42,24 @@ class AdminsPlugin(
         }
     }
 
-    override suspend fun BehaviourContext.invoke(database: Database, params: Map<String, Any>) {
-        when (chatsSettings) {
-            null -> {
-                mutex.withLock {
-                    val flow = databaseToAdminsCacheAPI.getOrPut(database){ MutableStateFlow(null) }
-                    if (flow.value == null) {
-                        flow.value = AdminsCacheAPI(database)
+    override fun Module.setupDI(database: Database, params: JsonObject) {
+        single { this@AdminsPlugin }
+    }
+
+    override suspend fun BehaviourContext.setupBotPlugin(koin: Koin) {
+        with(koin) {
+            when (chatsSettings) {
+                null -> {
+                    mutex.withLock {
+                        val flow = databaseToAdminsCacheAPI.getOrPut(koin.get()){ MutableStateFlow(null) }
+                        if (flow.value == null) {
+                            flow.value = AdminsCacheAPI(koin.get())
+                        }
                     }
                 }
-            }
-            else -> mutex.withLock {
-                globalAdminsCacheAPI.value = AdminsCacheAPI(database)
+                else -> mutex.withLock {
+                    globalAdminsCacheAPI.value = AdminsCacheAPI(koin.get())
+                }
             }
         }
     }

@@ -1,12 +1,11 @@
 package dev.inmo.tgbotapi.libraries.cache.media.micro_utils
 
-import com.benasher44.uuid.uuid4
 import dev.inmo.micro_utils.repos.*
 import dev.inmo.micro_utils.repos.mappers.withMapper
 import dev.inmo.tgbotapi.libraries.cache.media.common.MessagesSimpleCache
 import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.MessageIdentifier
-import dev.inmo.tgbotapi.types.message.content.abstracts.MessageContent
+import dev.inmo.tgbotapi.types.message.content.MessageContent
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.PairSerializer
 import kotlinx.serialization.builtins.serializer
@@ -16,14 +15,10 @@ import kotlin.js.JsName
 import kotlin.jvm.JvmName
 
 class SimpleKeyValueMessageContentCache<K>(
-    private val keyValueRepo: KeyValueRepo<K, MessageContent>,
-    private val keyGenerator: () -> K
+    private val keyValueRepo: KeyValueRepo<K, MessageContent>
 ) : MessagesSimpleCache<K> {
-    override suspend fun add(content: MessageContent): K {
-        val key = keyGenerator()
-        keyValueRepo.set(key, content)
-
-        return key
+    override suspend fun set(k: K, content: MessageContent) {
+        keyValueRepo.set(k, content)
     }
 
     override suspend fun update(k: K, content: MessageContent): Boolean {
@@ -47,12 +42,6 @@ class SimpleKeyValueMessageContentCache<K>(
 
     override suspend fun remove(k: K) {
         keyValueRepo.unset(k)
-    }
-
-    companion object {
-        operator fun invoke(
-            keyValueRepo: KeyValueRepo<String, MessageContent>
-        ) = SimpleKeyValueMessageContentCache(keyValueRepo) { uuid4().toString() }
     }
 }
 
