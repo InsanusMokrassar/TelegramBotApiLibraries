@@ -7,7 +7,7 @@ import dev.inmo.tgbotapi.requests.DeleteMessage
 import dev.inmo.tgbotapi.requests.abstracts.FileId
 import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.MilliSeconds
-import dev.inmo.tgbotapi.types.message.content.abstracts.MediaContent
+import dev.inmo.tgbotapi.types.message.content.MediaContent
 
 fun interface MediaFileActualityChecker {
     suspend fun TelegramBot.isActual(mediaContent: MediaContent): Boolean

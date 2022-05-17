@@ -1,10 +1,9 @@
 package dev.inmo.tgbotapi.libraries.cache.media.common
 
-import com.benasher44.uuid.uuid4
-import dev.inmo.tgbotapi.types.message.content.abstracts.MessageContent
+import dev.inmo.tgbotapi.types.message.content.MessageContent
 
 interface MessagesSimpleCache<K> {
-    suspend fun add(content: MessageContent): K
+    suspend fun set(k: K, content: MessageContent)
     suspend fun update(k: K, content: MessageContent): Boolean
     suspend fun get(k: K): MessageContent?
     suspend fun remove(k: K)
@@ -16,17 +15,14 @@ interface MessagesSimpleCache<K> {
  * start of application creation with usage of [MessageContentCache] with aim to replace this realization by some
  * disks-oriented one
  */
-class InMemoryMessagesSimpleCache<K>(
-    private val keyGenerator: () -> K
-) : MessagesSimpleCache<K> {
+class InMemoryMessagesSimpleCache<K> : MessagesSimpleCache<K> {
     private val map = mutableMapOf<K, MessageContent>()
 
-    override suspend fun add(
+    override suspend fun set(
+        k: K,
         content: MessageContent
-    ): K {
-        val key = keyGenerator()
-        map[key] = content
-        return key
+    ) {
+        map[k] = content
     }
 
     override suspend fun update(
@@ -53,11 +49,5 @@ class InMemoryMessagesSimpleCache<K>(
 
     override suspend fun contains(k: K): Boolean {
         return map.contains(k)
-    }
-
-    companion object {
-        operator fun invoke() = InMemoryMessagesSimpleCache {
-            uuid4().toString()
-        }
     }
 }

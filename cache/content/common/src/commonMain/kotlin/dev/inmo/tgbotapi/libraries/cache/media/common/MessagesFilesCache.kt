@@ -1,13 +1,12 @@
 package dev.inmo.tgbotapi.libraries.cache.media.common
 
-import dev.inmo.tgbotapi.types.ChatId
-import dev.inmo.tgbotapi.types.MessageIdentifier
+import dev.inmo.tgbotapi.requests.abstracts.MultipartFile
 import dev.inmo.tgbotapi.utils.StorageFile
 import io.ktor.utils.io.core.*
 
 interface MessagesFilesCache<K> {
     suspend fun set(k: K, filename: String, inputAllocator: suspend () -> Input)
-    suspend fun get(k: K): StorageFile?
+    suspend fun get(k: K): MultipartFile?
     suspend fun remove(k: K)
     suspend fun contains(k: K): Boolean
 }
@@ -18,16 +17,18 @@ interface MessagesFilesCache<K> {
  * disks-oriented one
  */
 class InMemoryMessagesFilesCache<K> : MessagesFilesCache<K> {
-    private val map = mutableMapOf<K, StorageFile>()
+    private val map = mutableMapOf<K, MultipartFile>()
 
     override suspend fun set(k: K, filename: String, inputAllocator: suspend () -> Input) {
-        map[k] = StorageFile(
-            filename,
-            inputAllocator().readBytes()
-        )
+        val input = inputAllocator()
+        map[k] = MultipartFile(
+            filename
+        ) {
+            input
+        }
     }
 
-    override suspend fun get(k: K): StorageFile? {
+    override suspend fun get(k: K): MultipartFile? {
         return map[k]
     }
 
