@@ -2,7 +2,7 @@ package dev.inmo.tgbotapi.libraries.cache.admins
 
 import dev.inmo.tgbotapi.extensions.utils.asGroupContentMessage
 import dev.inmo.tgbotapi.types.*
-import dev.inmo.tgbotapi.types.ChatMember.abstracts.AdministratorChatMember
+import dev.inmo.tgbotapi.types.chat.member.AdministratorChatMember
 import dev.inmo.tgbotapi.types.message.abstracts.GroupContentMessage
 import dev.inmo.tgbotapi.types.message.abstracts.Message
 

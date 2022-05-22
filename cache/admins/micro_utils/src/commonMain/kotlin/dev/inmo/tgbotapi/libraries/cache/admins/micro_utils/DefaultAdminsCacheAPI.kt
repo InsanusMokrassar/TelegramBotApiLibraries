@@ -6,7 +6,7 @@ import dev.inmo.micro_utils.coroutines.safelyWithoutExceptions
 import dev.inmo.micro_utils.repos.*
 import dev.inmo.tgbotapi.libraries.cache.admins.DefaultAdminsCacheAPIRepo
 import dev.inmo.tgbotapi.types.*
-import dev.inmo.tgbotapi.types.ChatMember.abstracts.AdministratorChatMember
+import dev.inmo.tgbotapi.types.chat.member.AdministratorChatMember
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlin.coroutines.*
