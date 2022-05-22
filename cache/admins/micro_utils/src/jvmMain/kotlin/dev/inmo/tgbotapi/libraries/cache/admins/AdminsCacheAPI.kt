@@ -8,9 +8,7 @@ import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContext
 import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DefaultAdminsCacheAPIRepo
 import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DynamicAdminsCacheSettingsAPI
 import dev.inmo.tgbotapi.types.*
-import dev.inmo.tgbotapi.types.ChatMember.AdministratorChatMemberImpl
-import dev.inmo.tgbotapi.types.ChatMember.CreatorChatMember
-import dev.inmo.tgbotapi.types.ChatMember.abstracts.AdministratorChatMember
+import dev.inmo.tgbotapi.types.chat.member.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.Cbor

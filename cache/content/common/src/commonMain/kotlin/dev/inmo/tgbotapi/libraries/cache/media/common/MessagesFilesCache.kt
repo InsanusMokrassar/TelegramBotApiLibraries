@@ -1,7 +1,6 @@
 package dev.inmo.tgbotapi.libraries.cache.media.common
 
 import dev.inmo.tgbotapi.requests.abstracts.MultipartFile
-import dev.inmo.tgbotapi.utils.StorageFile
 import io.ktor.utils.io.core.*
 
 interface MessagesFilesCache<K> {
