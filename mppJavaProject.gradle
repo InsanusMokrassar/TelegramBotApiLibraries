@@ -5,7 +5,11 @@ apply from: "$publishGradlePath"
 
 kotlin {
     jvm {
-        compilations.main.kotlinOptions.useIR = true
+        compilations.main {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
     }
 
     sourceSets {
