@@ -1,7 +1,7 @@
 package dev.inmo.tgbotapi.libraries.cache.admins
 
 import dev.inmo.micro_utils.repos.exposed.keyvalue.ExposedKeyValueRepo
-import dev.inmo.micro_utils.repos.exposed.onetomany.ExposedOneToManyKeyValueRepo
+import dev.inmo.micro_utils.repos.exposed.onetomany.ExposedKeyValuesRepo
 import dev.inmo.micro_utils.repos.mappers.withMapper
 import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContext
@@ -36,7 +36,7 @@ fun AdminsCacheAPI(
 ) : AdminsCacheAPI = DefaultAdminsCacheAPI(
     bot,
     DefaultAdminsCacheAPIRepo(
-        ExposedOneToManyKeyValueRepo(
+        ExposedKeyValuesRepo(
             database,
             { long("chatId") },
             { text("member") },
