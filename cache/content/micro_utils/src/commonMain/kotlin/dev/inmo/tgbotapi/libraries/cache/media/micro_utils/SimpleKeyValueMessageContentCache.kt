@@ -52,6 +52,8 @@ val chatIdToMessageIdentifierSerializer = PairSerializer(
 
 val messageContentSerializer = PolymorphicSerializer<MessageContent>(MessageContent::class)
 
+inline fun <K> KeyValueRepo<K, MessageContent>.asMessageContentCache() = SimpleKeyValueMessageContentCache(this)
+
 inline fun KeyValueRepo<String, String>.asMessageContentCache(
     serialFormatCreator: (SerializersModule) -> StringFormat = { Json { serializersModule = it } }
 ): StandardKeyValueRepo<Pair<ChatId, MessageIdentifier>, MessageContent> {
