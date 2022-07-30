@@ -41,17 +41,10 @@ class AdminsPlugin : Plugin {
 
     override suspend fun BehaviourContext.setupBotPlugin(koin: Koin) {
         with(koin) {
-            when (chatsSettings) {
-                null -> {
-                    mutex.withLock {
-                        val flow = databaseToAdminsCacheAPI.getOrPut(koin.get()){ MutableStateFlow(null) }
-                        if (flow.value == null) {
-                            flow.value = AdminsCacheAPI(koin.get())
-                        }
-                    }
-                }
-                else -> mutex.withLock {
-                    globalAdminsCacheAPI.value = AdminsCacheAPI(koin.get())
+            mutex.withLock {
+                val flow = databaseToAdminsCacheAPI.getOrPut(koin.get()){ MutableStateFlow(null) }
+                if (flow.value == null) {
+                    flow.value = AdminsCacheAPI(koin.get())
                 }
             }
         }
