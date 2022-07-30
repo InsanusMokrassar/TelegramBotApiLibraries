@@ -21,9 +21,7 @@ val Koin.adminsPlugin: AdminsPlugin?
     get() = getOrNull()
 
 @Serializable
-class AdminsPlugin(
-    private val chatsSettings: Map<ChatId, AdminsCacheSettings>? = null
-) : Plugin {
+class AdminsPlugin : Plugin {
     @Transient
     private val globalAdminsCacheAPI = MutableStateFlow<AdminsCacheAPI?>(null)
     @Transient
@@ -31,15 +29,10 @@ class AdminsPlugin(
     private val mutex = Mutex()
 
     suspend fun adminsAPI(database: Database): AdminsCacheAPI {
-        return when (chatsSettings) {
-            null -> {
-                val flow = mutex.withLock {
-                    databaseToAdminsCacheAPI.getOrPut(database){ MutableStateFlow(null) }
-                }
-                flow.first { it != null }!!
-            }
-            else -> globalAdminsCacheAPI.first { it != null }!!
+        val flow = mutex.withLock {
+            databaseToAdminsCacheAPI.getOrPut(database){ MutableStateFlow(null) }
         }
+        return flow.filterNotNull().first()
     }
 
     override fun Module.setupDI(database: Database, params: JsonObject) {
