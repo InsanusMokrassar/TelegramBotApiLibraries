@@ -23,7 +23,7 @@ private val serializationFormat = Json {
     serializersModule = SerializersModule {
         polymorphic(AdministratorChatMember::class) {
             subclass(AdministratorChatMemberImpl::class, AdministratorChatMemberImpl.serializer())
-            subclass(CreatorChatMember::class, CreatorChatMember.serializer())
+            subclass(OwnerChatMember::class, OwnerChatMember.serializer())
         }
         contextual(AdministratorChatMember::class, PolymorphicSerializer(AdministratorChatMember::class))
     }
