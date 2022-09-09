@@ -20,6 +20,7 @@ import org.koin.core.Koin
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
+import org.koin.dsl.binds
 
 val Scope.adminsPlugin: AdminsPlugin?
     get() = getOrNull()
@@ -90,7 +91,9 @@ class AdminsPlugin : Plugin {
                 get(scopeQualifier)
             )
         }
-        single { DefaultAdminsCacheAPI(get(), get(), get()) }
+        single { DefaultAdminsCacheAPI(get(), get(), get()) } binds arrayOf(
+            AdminsCacheAPI::class
+        )
     }
 
     override suspend fun BehaviourContext.setupBotPlugin(koin: Koin) {
