@@ -1,17 +1,24 @@
 package dev.inmo.tgbotapi.libraries.cache.admins
 
+import dev.inmo.micro_utils.repos.exposed.keyvalue.ExposedKeyValueRepo
+import dev.inmo.micro_utils.repos.exposed.onetomany.ExposedKeyValuesRepo
+import dev.inmo.micro_utils.repos.mappers.withMapper
 import dev.inmo.plagubot.Plugin
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContext
-import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DefaultAdminsCacheAPIRepoImpl
+import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DynamicAdminsCacheSettingsAPI
+import dev.inmo.tgbotapi.types.*
+import dev.inmo.tgbotapi.types.chat.member.AdministratorChatMember
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.exposed.sql.Database
 import org.koin.core.Koin
 import org.koin.core.module.Module
+import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 
 val Scope.adminsPlugin: AdminsPlugin?
@@ -28,6 +35,7 @@ class AdminsPlugin : Plugin {
     private val databaseToAdminsCacheAPI = mutableMapOf<Database, MutableStateFlow<AdminsCacheAPI?>>()
     private val mutex = Mutex()
 
+    @Deprecated("Will be removed soon due to its redundancy")
     suspend fun adminsAPI(database: Database): AdminsCacheAPI {
         val flow = mutex.withLock {
             databaseToAdminsCacheAPI.getOrPut(database){ MutableStateFlow(null) }
@@ -37,16 +45,59 @@ class AdminsPlugin : Plugin {
 
     override fun Module.setupDI(database: Database, params: JsonObject) {
         single { this@AdminsPlugin }
+        val scopeQualifier = named("admins plugin scope")
+        single(scopeQualifier) { CoroutineScope(Dispatchers.IO + SupervisorJob()) }
+        single<DefaultAdminsCacheAPIRepo> {
+            DefaultAdminsCacheAPIRepoImpl(
+                ExposedKeyValuesRepo(
+                    database,
+                    { long("chatId") },
+                    { text("member") },
+                    "AdminsTable"
+                ).withMapper<ChatId, AdministratorChatMember, Identifier, String>(
+                    keyFromToTo = { chatId },
+                    valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(this) },
+                    keyToToFrom = { toChatId() },
+                    valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(this) }
+                ),
+                ExposedKeyValueRepo(
+                    database,
+                    { long("chatId") },
+                    { long("datetime") },
+                    "AdminsUpdatesTimesTable"
+                ).withMapper<ChatId, Long, Identifier, Long>(
+                    keyFromToTo = { chatId },
+                    valueFromToTo = { this },
+                    keyToToFrom = { toChatId() },
+                    valueToToFrom = { this }
+                ),
+                get(scopeQualifier)
+            )
+        }
+        single<AdminsCacheSettingsAPI> {
+            DynamicAdminsCacheSettingsAPI(
+                ExposedKeyValueRepo(
+                    database,
+                    { long("chatId") },
+                    { text("settings") },
+                    "DynamicAdminsCacheSettingsAPI"
+                ).withMapper<ChatId, AdminsCacheSettings, Identifier, String>(
+                    keyFromToTo = { chatId },
+                    valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(this) },
+                    keyToToFrom = { toChatId() },
+                    valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(this) }
+                ),
+                get(scopeQualifier)
+            )
+        }
+        single { DefaultAdminsCacheAPI(get(), get(), get()) }
     }
 
     override suspend fun BehaviourContext.setupBotPlugin(koin: Koin) {
         with(koin) {
-            mutex.withLock {
-                val flow = databaseToAdminsCacheAPI.getOrPut(koin.get()){ MutableStateFlow(null) }
-                if (flow.value == null) {
-                    flow.value = AdminsCacheAPI(koin.get())
-                }
-            }
+            activateAdminsChangesListening(
+                get()
+            )
         }
     }
 }

@@ -28,7 +28,7 @@ private class SetChatAdminsRepoAction(
     override val toReturn: Continuation<Unit>
 ) : RepoActions<Unit>()
 
-class DefaultAdminsCacheAPIRepo(
+class DefaultAdminsCacheAPIRepoImpl(
     private val adminsRepo: KeyValuesRepo<ChatId, AdministratorChatMember>,
     private val updatesRepo: KeyValueRepo<ChatId, MilliSeconds>,
     private val scope: CoroutineScope
@@ -60,3 +60,9 @@ class DefaultAdminsCacheAPIRepo(
         actor.trySend(GetUpdateDateTimeRepoAction(chatId, it))
     }
 }
+
+fun DefaultAdminsCacheAPIRepo(
+    adminsRepo: KeyValuesRepo<ChatId, AdministratorChatMember>,
+    updatesRepo: KeyValueRepo<ChatId, MilliSeconds>,
+    scope: CoroutineScope
+) = DefaultAdminsCacheAPIRepoImpl(adminsRepo, updatesRepo, scope)
