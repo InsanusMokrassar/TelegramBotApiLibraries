@@ -29,15 +29,6 @@ class DefaultAdminsCacheAPI(
         bot.getMe().also { botInfo = it }
     }
 
-    private suspend fun triggerUpdate(chatId: ChatId): List<AdministratorChatMember> {
-        val botInfo = getBotInfo()
-        val admins = bot.getChatAdministrators(chatId).filter {
-            botInfo.id != it.user.id
-        }
-        repo.setChatAdmins(chatId, admins)
-        return admins
-    }
-
     override suspend fun getChatAdmins(chatId: ChatId): List<AdministratorChatMember>? {
         val settings = settingsAPI.getChatSettings(chatId)
         val lastUpdate = repo.lastUpdate(chatId)
@@ -63,5 +54,4 @@ class DefaultAdminsCacheAPI(
     }
 
     override suspend fun settings(): AdminsCacheSettingsAPI = settingsAPI
-
 }
