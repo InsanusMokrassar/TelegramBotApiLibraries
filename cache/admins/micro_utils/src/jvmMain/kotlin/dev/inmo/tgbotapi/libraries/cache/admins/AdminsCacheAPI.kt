@@ -1,5 +1,7 @@
 package dev.inmo.tgbotapi.libraries.cache.admins
 
+import dev.inmo.micro_utils.repos.KeyValueRepo
+import dev.inmo.micro_utils.repos.KeyValuesRepo
 import dev.inmo.micro_utils.repos.exposed.keyvalue.ExposedKeyValueRepo
 import dev.inmo.micro_utils.repos.exposed.onetomany.ExposedKeyValuesRepo
 import dev.inmo.micro_utils.repos.mappers.withMapper
@@ -75,3 +77,47 @@ fun AdminsCacheAPI(
 )
 
 fun BehaviourContext.AdminsCacheAPI(database: Database) = AdminsCacheAPI(this, database, this)
+
+fun BehaviourContext.AdminsCacheAPI(
+    database: Database,
+    scope: CoroutineScope,
+    defaultAdminsCacheAPIRepo: DefaultAdminsCacheAPIRepo = DefaultAdminsCacheAPIRepoImpl(
+        ExposedKeyValuesRepo(
+            database,
+            { long("chatId") },
+            { text("member") },
+            "AdminsTable"
+        ).withMapper<ChatId, AdministratorChatMember, Identifier, String>(
+            keyFromToTo = { chatId },
+            valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(this) },
+            keyToToFrom = { toChatId() },
+            valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(this) }
+        ),
+        ExposedKeyValueRepo(
+            database,
+            { long("chatId") },
+            { long("datetime") },
+            "AdminsUpdatesTimesTable"
+        ).withMapper<ChatId, Long, Identifier, Long>(
+            keyFromToTo = { chatId },
+            valueFromToTo = { this },
+            keyToToFrom = { toChatId() },
+            valueToToFrom = { this }
+        ),
+        scope
+    ),
+    adminsCacheSettingsAPI: AdminsCacheSettingsAPI = DynamicAdminsCacheSettingsAPI(
+        ExposedKeyValueRepo(
+            database,
+            { long("chatId") },
+            { text("settings") },
+            "DynamicAdminsCacheSettingsAPI"
+        ).withMapper<ChatId, AdminsCacheSettings, Identifier, String>(
+            keyFromToTo = { chatId },
+            valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(this) },
+            keyToToFrom = { toChatId() },
+            valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(this) }
+        ),
+        scope
+    )
+) = DefaultAdminsCacheAPI(this, defaultAdminsCacheAPIRepo, adminsCacheSettingsAPI)
