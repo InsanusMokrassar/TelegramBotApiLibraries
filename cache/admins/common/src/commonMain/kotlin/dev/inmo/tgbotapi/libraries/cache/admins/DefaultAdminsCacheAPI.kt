@@ -36,9 +36,9 @@ class DefaultAdminsCacheAPI(
             settings == null -> null
             settings.refreshOnRequests &&
                 (lastUpdate == null || (DateTime.now() - lastUpdate).seconds > settings.refreshSeconds) -> {
-                triggerUpdate(chatId)
+                bot.updateAdmins(chatId, repo, getBotInfo())
             }
-            else -> repo.getChatAdmins(chatId) ?: triggerUpdate(chatId)
+            else -> repo.getChatAdmins(chatId) ?: bot.updateAdmins(chatId, repo, getBotInfo())
         }
     }
 
