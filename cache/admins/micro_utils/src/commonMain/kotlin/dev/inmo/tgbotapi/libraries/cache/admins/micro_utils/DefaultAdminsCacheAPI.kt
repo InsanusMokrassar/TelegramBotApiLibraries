@@ -54,9 +54,6 @@ class DefaultAdminsCacheAPIRepoImpl(
         actor.trySend(GetChatAdminsRepoAction(chatId, it))
     }
 
-    override suspend fun tryGetChatAdmins(chatId: ChatId): List<AdministratorChatMember>? {
-        TODO("Not yet implemented")
-    }
     override suspend fun setChatAdmins(chatId: ChatId, chatMembers: List<AdministratorChatMember>) = suspendCoroutine<Unit> {
         actor.trySend(SetChatAdminsRepoAction(chatId, chatMembers, it))
     }
