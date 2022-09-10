@@ -5,20 +5,18 @@ import dev.inmo.micro_utils.repos.exposed.onetomany.ExposedKeyValuesRepo
 import dev.inmo.micro_utils.repos.mappers.withMapper
 import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContext
-import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DefaultAdminsCacheAPIRepo
+import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DefaultAdminsCacheAPIRepoImpl
 import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DynamicAdminsCacheSettingsAPI
 import dev.inmo.tgbotapi.types.*
 import dev.inmo.tgbotapi.types.chat.member.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.*
-import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 
-private val serializationFormat = Json {
+val telegramAdminsSerializationFormat = Json {
     ignoreUnknownKeys = true
     serializersModule = SerializersModule {
         polymorphic(AdministratorChatMember::class) {
@@ -29,13 +27,12 @@ private val serializationFormat = Json {
     }
 }
 
-fun AdminsCacheAPI(
-    bot: TelegramBot,
+fun BehaviourContext.createAdminsCacheAPI(database: Database) = AdminsCacheAPI(this, database, this)
+
+fun TelegramBot.createAdminsCacheAPI(
     database: Database,
-    scope: CoroutineScope
-) : AdminsCacheAPI = DefaultAdminsCacheAPI(
-    bot,
-    DefaultAdminsCacheAPIRepo(
+    scope: CoroutineScope,
+    defaultAdminsCacheAPIRepo: DefaultAdminsCacheAPIRepo = DefaultAdminsCacheAPIRepoImpl(
         ExposedKeyValuesRepo(
             database,
             { long("chatId") },
@@ -43,9 +40,9 @@ fun AdminsCacheAPI(
             "AdminsTable"
         ).withMapper<ChatId, AdministratorChatMember, Identifier, String>(
             keyFromToTo = { chatId },
-            valueFromToTo = { serializationFormat.encodeToString(this) },
+            valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(this) },
             keyToToFrom = { toChatId() },
-            valueToToFrom = { serializationFormat.decodeFromString(this) }
+            valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(this) }
         ),
         ExposedKeyValueRepo(
             database,
@@ -60,7 +57,7 @@ fun AdminsCacheAPI(
         ),
         scope
     ),
-    DynamicAdminsCacheSettingsAPI(
+    adminsCacheSettingsAPI: AdminsCacheSettingsAPI = DynamicAdminsCacheSettingsAPI(
         ExposedKeyValueRepo(
             database,
             { long("chatId") },
@@ -68,12 +65,19 @@ fun AdminsCacheAPI(
             "DynamicAdminsCacheSettingsAPI"
         ).withMapper<ChatId, AdminsCacheSettings, Identifier, String>(
             keyFromToTo = { chatId },
-            valueFromToTo = { serializationFormat.encodeToString(this) },
+            valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(this) },
             keyToToFrom = { toChatId() },
-            valueToToFrom = { serializationFormat.decodeFromString(this) }
+            valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(this) }
         ),
         scope
     )
-)
+) = DefaultAdminsCacheAPI(this, defaultAdminsCacheAPIRepo, adminsCacheSettingsAPI)
 
-fun BehaviourContext.AdminsCacheAPI(database: Database) = AdminsCacheAPI(this, database, this)
+fun AdminsCacheAPI(
+    bot: TelegramBot,
+    database: Database,
+    scope: CoroutineScope
+) : AdminsCacheAPI = bot.createAdminsCacheAPI(
+    database,
+    scope
+)

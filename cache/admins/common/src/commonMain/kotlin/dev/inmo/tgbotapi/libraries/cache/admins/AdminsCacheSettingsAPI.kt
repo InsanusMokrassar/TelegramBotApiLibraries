@@ -15,8 +15,11 @@ data class AdminsCacheSettings(
      */
     val disableRequestsRefreshMode: Boolean = false
 ) {
-    val refreshOnRequests: Boolean
+    val refreshOnCacheCalls: Boolean
         get() = !disableRequestsRefreshMode
+    @Deprecated("Renamed", ReplaceWith("refreshOnCacheCalls"))
+    val refreshOnRequests: Boolean
+        get() = refreshOnCacheCalls
 }
 
 interface AdminsCacheSettingsAPI {
