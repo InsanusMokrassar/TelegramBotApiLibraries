@@ -3,7 +3,7 @@ package dev.inmo.tgbotapi.libraries.cache.admins
 import com.soywiz.klock.DateTime
 import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.extensions.api.bot.getMe
-import dev.inmo.tgbotapi.extensions.api.chat.get.getChatAdministrators
+import dev.inmo.tgbotapi.extensions.api.chat.members.getChatMember
 import dev.inmo.tgbotapi.types.*
 import dev.inmo.tgbotapi.types.chat.ExtendedBot
 import dev.inmo.tgbotapi.types.chat.member.AdministratorChatMember
@@ -34,12 +34,30 @@ class DefaultAdminsCacheAPI(
         val lastUpdate = repo.lastUpdate(chatId)
         return when {
             settings == null -> null
-            settings.refreshOnRequests &&
+            settings.refreshOnCacheCalls &&
                 (lastUpdate == null || (DateTime.now() - lastUpdate).seconds > settings.refreshSeconds) -> {
                 bot.updateAdmins(chatId, repo, getBotInfo())
             }
             else -> repo.getChatAdmins(chatId) ?: bot.updateAdmins(chatId, repo, getBotInfo())
         }
+    }
+
+    override suspend fun isAdmin(chatId: ChatId, userId: UserId): Boolean {
+        val settings = settingsAPI.getChatSettings(chatId)
+        val lastUpdate = repo.lastUpdate(chatId)
+        return when {
+            settings == null -> return false
+            settings.refreshOnCacheCalls && (lastUpdate == null || (DateTime.now() - lastUpdate).seconds > settings.refreshSeconds) -> {
+                bot.updateAdmins(chatId, repo, getBotInfo())
+            }
+            else -> {
+                val chatAdmins = repo.getChatAdmins(chatId)
+                if (chatAdmins == null) {
+                    return bot.getChatMember(chatId, userId) is AdministratorChatMember
+                }
+                chatAdmins
+            }
+        }.any { it.user.id == userId }
     }
 
     override suspend fun sentByAdmin(groupContentMessage: GroupContentMessage<*>): Boolean {

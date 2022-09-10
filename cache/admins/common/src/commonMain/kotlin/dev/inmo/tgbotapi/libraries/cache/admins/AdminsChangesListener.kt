@@ -7,17 +7,19 @@ import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onChatMe
 import dev.inmo.tgbotapi.extensions.behaviour_builder.utils.SimpleFilter
 import dev.inmo.tgbotapi.extensions.behaviour_builder.utils.marker_factories.ByChatChatMemberUpdatedMarkerFactory
 import dev.inmo.tgbotapi.extensions.behaviour_builder.utils.marker_factories.MarkerFactory
+import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.chat.member.AdministratorChatMember
 import dev.inmo.tgbotapi.types.chat.member.ChatMemberUpdated
 import dev.inmo.tgbotapi.types.update.abstracts.Update
+import kotlinx.coroutines.Job
 
 suspend fun BehaviourContext.activateAdminsChangesListening(
     repo: DefaultAdminsCacheAPIRepo,
     initialFilter: SimpleFilter<ChatMemberUpdated>? = null,
     markerFactory: MarkerFactory<ChatMemberUpdated, Any> = ByChatChatMemberUpdatedMarkerFactory
-) {
+): Job {
     val me = getMe()
-    onChatMemberUpdated(initialFilter, markerFactory = markerFactory) {
+    return onChatMemberUpdated(initialFilter, markerFactory = markerFactory) {
         when {
             it.oldChatMemberState is AdministratorChatMember && it.newChatMemberState !is AdministratorChatMember ||
             it.newChatMemberState is AdministratorChatMember && it.oldChatMemberState !is AdministratorChatMember -> {
@@ -30,3 +32,13 @@ suspend fun BehaviourContext.activateAdminsChangesListening(
         }
     }
 }
+
+suspend fun BehaviourContext.activateAdminsChangesListening(
+    repo: DefaultAdminsCacheAPIRepo,
+    allowedChats: List<ChatId>
+) = activateAdminsChangesListening(
+    repo,
+    {
+        it.chat.id in allowedChats
+    }
+)
