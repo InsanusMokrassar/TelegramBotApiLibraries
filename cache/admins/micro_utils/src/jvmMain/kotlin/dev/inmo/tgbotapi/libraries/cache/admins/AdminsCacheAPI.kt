@@ -40,9 +40,9 @@ fun TelegramBot.createAdminsCacheAPI(
             "AdminsTable"
         ).withMapper<ChatId, AdministratorChatMember, Identifier, String>(
             keyFromToTo = { chatId },
-            valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(this) },
+            valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(AdministratorChatMember.serializer(), this) },
             keyToToFrom = { toChatId() },
-            valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(this) }
+            valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(AdministratorChatMember.serializer(), this) }
         ),
         ExposedKeyValueRepo(
             database,
@@ -65,9 +65,9 @@ fun TelegramBot.createAdminsCacheAPI(
             "DynamicAdminsCacheSettingsAPI"
         ).withMapper<ChatId, AdminsCacheSettings, Identifier, String>(
             keyFromToTo = { chatId },
-            valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(this) },
+            valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(AdminsCacheSettings.serializer() , this) },
             keyToToFrom = { toChatId() },
-            valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(this) }
+            valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(AdminsCacheSettings.serializer() , this) }
         ),
         scope
     )
