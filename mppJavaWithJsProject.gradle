@@ -11,11 +11,16 @@ kotlin {
             }
         }
     }
+    js (IR) {
+        browser()
+        nodejs()
+    }
 
     sourceSets {
         commonMain {
             dependencies {
                 implementation kotlin('stdlib')
+                api "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlin_serialisation_core_version"
             }
         }
         commonTest {
@@ -24,9 +29,14 @@ kotlin {
                 implementation kotlin('test-annotations-common')
             }
         }
-
         jvmTest {
             dependencies {
+                implementation kotlin('test-junit')
+            }
+        }
+        jsTest {
+            dependencies {
+                implementation kotlin('test-js')
                 implementation kotlin('test-junit')
             }
         }
