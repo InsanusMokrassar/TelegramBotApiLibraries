@@ -13,12 +13,7 @@ allprojects {
             projectByName(name)
         }
 
-        mppJavaWithJsProjectPath = "${rootProject.projectDir.absolutePath}/mppProjectWithSerialization.gradle"
-        mppJavaProjectPresetPath = "${rootProject.projectDir.absolutePath}/mppJavaProject.gradle"
-        mppAndroidProjectPresetPath = "${rootProject.projectDir.absolutePath}/mppAndroidProject.gradle"
         mppJavaWithJsProjectPath = "${rootProject.projectDir.absolutePath}/mppJavaWithJsProject.gradle"
-
-        defaultAndroidSettingsPresetPath = "${rootProject.projectDir.absolutePath}/defaultAndroidSettings.gradle"
 
         publishGradlePath = "${rootProject.projectDir.absolutePath}/publish.gradle"
     }
