@@ -1,7 +1,7 @@
 package dev.inmo.tgbotapi.libraries.cache.admins
 
 import com.soywiz.klock.minutes
-import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.Seconds
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.serialization.Serializable
@@ -23,22 +23,22 @@ data class AdminsCacheSettings(
 }
 
 interface AdminsCacheSettingsAPI {
-    suspend fun getChatSettings(chatId: ChatId): AdminsCacheSettings?
+    suspend fun getChatSettings(chatId: IdChatIdentifier): AdminsCacheSettings?
 }
 
 interface MutableAdminsCacheSettingsAPI : AdminsCacheSettingsAPI {
-    val chatSettingsUpdatedFlow: SharedFlow<Pair<ChatId, AdminsCacheSettings>>
+    val chatSettingsUpdatedFlow: SharedFlow<Pair<IdChatIdentifier, AdminsCacheSettings>>
 
-    suspend fun setChatSettings(chatId: ChatId, settings: AdminsCacheSettings)
+    suspend fun setChatSettings(chatId: IdChatIdentifier, settings: AdminsCacheSettings)
 }
 
 fun AdminsCacheSettingsAPI.asMutable(): MutableAdminsCacheSettingsAPI? = this as? MutableAdminsCacheSettingsAPI
 
 @Serializable
 class StaticAdminsCacheSettingsAPI(
-    private val settings: Map<ChatId, AdminsCacheSettings>
+    private val settings: Map<IdChatIdentifier, AdminsCacheSettings>
 ) : AdminsCacheSettingsAPI {
-    override suspend fun getChatSettings(chatId: ChatId): AdminsCacheSettings? = settings[chatId]
+    override suspend fun getChatSettings(chatId: IdChatIdentifier): AdminsCacheSettings? = settings[chatId]
 }
 
 

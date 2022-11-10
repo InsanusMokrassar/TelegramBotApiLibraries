@@ -2,19 +2,19 @@ package dev.inmo.tgbotapi.libraries.cache.admins
 
 import dev.inmo.tgbotapi.abstracts.FromUser
 import dev.inmo.tgbotapi.extensions.behaviour_builder.utils.SimpleFilter
-import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.UserId
 import dev.inmo.tgbotapi.types.message.abstracts.Message
 
 fun AdminsChecker(
     adminsCacheAPI: AdminsCacheAPI
-): SimpleFilter<Pair<ChatId, UserId>> = SimpleFilter {
+): SimpleFilter<Pair<IdChatIdentifier, UserId>> = SimpleFilter {
     adminsCacheAPI.isAdmin(it.first, it.second)
 }
 
 fun <T> AdminsChecker(
     adminsCacheAPI: AdminsCacheAPI,
-    mapper: (T) -> Pair<ChatId, UserId>
+    mapper: (T) -> Pair<IdChatIdentifier, UserId>
 ): SimpleFilter<T> {
     val baseChecker = AdminsChecker(adminsCacheAPI)
 
@@ -31,7 +31,7 @@ fun MessageAdminsChecker(
 
 fun AdminsChecker(
     adminsCacheAPI: AdminsCacheAPI,
-    chatId: ChatId
+    chatId: IdChatIdentifier
 ) = SimpleFilter<FromUser> {
     adminsCacheAPI.isAdmin(chatId, it.from.id)
 }

@@ -11,9 +11,9 @@ import dev.inmo.tgbotapi.types.message.abstracts.*
 import kotlinx.serialization.Serializable
 
 interface DefaultAdminsCacheAPIRepo {
-    suspend fun getChatAdmins(chatId: ChatId): List<AdministratorChatMember>?
-    suspend fun setChatAdmins(chatId: ChatId, chatMembers: List<AdministratorChatMember>)
-    suspend fun lastUpdate(chatId: ChatId): DateTime?
+    suspend fun getChatAdmins(chatId: IdChatIdentifier): List<AdministratorChatMember>?
+    suspend fun setChatAdmins(chatId: IdChatIdentifier, chatMembers: List<AdministratorChatMember>)
+    suspend fun lastUpdate(chatId: IdChatIdentifier): DateTime?
 }
 
 @Serializable
@@ -29,7 +29,7 @@ class DefaultAdminsCacheAPI(
         bot.getMe().also { botInfo = it }
     }
 
-    override suspend fun getChatAdmins(chatId: ChatId): List<AdministratorChatMember>? {
+    override suspend fun getChatAdmins(chatId: IdChatIdentifier): List<AdministratorChatMember>? {
         val settings = settingsAPI.getChatSettings(chatId)
         val lastUpdate = repo.lastUpdate(chatId)
         return when {
@@ -42,7 +42,7 @@ class DefaultAdminsCacheAPI(
         }
     }
 
-    override suspend fun isAdmin(chatId: ChatId, userId: UserId): Boolean {
+    override suspend fun isAdmin(chatId: IdChatIdentifier, userId: UserId): Boolean {
         val settings = settingsAPI.getChatSettings(chatId)
         val lastUpdate = repo.lastUpdate(chatId)
         return when {

@@ -7,7 +7,7 @@ import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onChatMe
 import dev.inmo.tgbotapi.extensions.behaviour_builder.utils.SimpleFilter
 import dev.inmo.tgbotapi.extensions.behaviour_builder.utils.marker_factories.ByChatChatMemberUpdatedMarkerFactory
 import dev.inmo.tgbotapi.extensions.behaviour_builder.utils.marker_factories.MarkerFactory
-import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.chat.member.AdministratorChatMember
 import dev.inmo.tgbotapi.types.chat.member.ChatMemberUpdated
 import dev.inmo.tgbotapi.types.update.abstracts.Update
@@ -35,7 +35,7 @@ suspend fun BehaviourContext.activateAdminsChangesListening(
 
 suspend fun BehaviourContext.activateAdminsChangesListening(
     repo: DefaultAdminsCacheAPIRepo,
-    allowedChats: List<ChatId>
+    allowedChats: List<IdChatIdentifier>
 ) = activateAdminsChangesListening(
     repo,
     {

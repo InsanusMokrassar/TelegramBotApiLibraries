@@ -15,22 +15,22 @@ private sealed class RepoActions<T> {
     abstract val deferred: CompletableDeferred<T>
 }
 private class GetUpdateDateTimeRepoAction(
-    val chatId: ChatId,
+    val chatId: IdChatIdentifier,
     override val deferred: CompletableDeferred<DateTime?>
 ) : RepoActions<DateTime?>()
 private class GetChatAdminsRepoAction(
-    val chatId: ChatId,
+    val chatId: IdChatIdentifier,
     override val deferred: CompletableDeferred<List<AdministratorChatMember>?>
 ) : RepoActions<List<AdministratorChatMember>?>()
 private class SetChatAdminsRepoAction(
-    val chatId: ChatId,
+    val chatId: IdChatIdentifier,
     val newValue: List<AdministratorChatMember>,
     override val deferred: CompletableDeferred<Unit>
 ) : RepoActions<Unit>()
 
 class DefaultAdminsCacheAPIRepoImpl(
-    private val adminsRepo: KeyValuesRepo<ChatId, AdministratorChatMember>,
-    private val updatesRepo: KeyValueRepo<ChatId, MilliSeconds>,
+    private val adminsRepo: KeyValuesRepo<IdChatIdentifier, AdministratorChatMember>,
+    private val updatesRepo: KeyValueRepo<IdChatIdentifier, MilliSeconds>,
     private val scope: CoroutineScope
 ) : DefaultAdminsCacheAPIRepo {
     private val actor = scope.actorAsync<RepoActions<*>>(Channel.UNLIMITED) {
@@ -54,7 +54,7 @@ class DefaultAdminsCacheAPIRepoImpl(
         }
     }
 
-    override suspend fun getChatAdmins(chatId: ChatId): List<AdministratorChatMember>? {
+    override suspend fun getChatAdmins(chatId: IdChatIdentifier): List<AdministratorChatMember>? {
         val deferred = CompletableDeferred<List<AdministratorChatMember>?>()
         actor.trySend(
             GetChatAdminsRepoAction(chatId, deferred)
@@ -64,7 +64,7 @@ class DefaultAdminsCacheAPIRepoImpl(
         return deferred.await()
     }
 
-    override suspend fun setChatAdmins(chatId: ChatId, chatMembers: List<AdministratorChatMember>) {
+    override suspend fun setChatAdmins(chatId: IdChatIdentifier, chatMembers: List<AdministratorChatMember>) {
         val deferred = CompletableDeferred<Unit>()
         actor.trySend(
             SetChatAdminsRepoAction(chatId, chatMembers, deferred)
@@ -73,7 +73,7 @@ class DefaultAdminsCacheAPIRepoImpl(
         }
         return deferred.await()
     }
-    override suspend fun lastUpdate(chatId: ChatId): DateTime? {
+    override suspend fun lastUpdate(chatId: IdChatIdentifier): DateTime? {
         val deferred = CompletableDeferred<DateTime?>()
         actor.trySend(
             GetUpdateDateTimeRepoAction(chatId, deferred)
@@ -85,7 +85,7 @@ class DefaultAdminsCacheAPIRepoImpl(
 }
 
 fun DefaultAdminsCacheAPIRepo(
-    adminsRepo: KeyValuesRepo<ChatId, AdministratorChatMember>,
-    updatesRepo: KeyValueRepo<ChatId, MilliSeconds>,
+    adminsRepo: KeyValuesRepo<IdChatIdentifier, AdministratorChatMember>,
+    updatesRepo: KeyValueRepo<IdChatIdentifier, MilliSeconds>,
     scope: CoroutineScope
 ) = DefaultAdminsCacheAPIRepoImpl(adminsRepo, updatesRepo, scope)

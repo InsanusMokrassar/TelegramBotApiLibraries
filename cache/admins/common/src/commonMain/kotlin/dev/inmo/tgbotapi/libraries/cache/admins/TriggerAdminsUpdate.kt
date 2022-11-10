@@ -3,12 +3,12 @@ package dev.inmo.tgbotapi.libraries.cache.admins
 import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.extensions.api.bot.getMe
 import dev.inmo.tgbotapi.extensions.api.chat.get.getChatAdministrators
-import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.chat.ExtendedBot
 import dev.inmo.tgbotapi.types.chat.member.AdministratorChatMember
 
 internal suspend fun TelegramBot.updateAdmins(
-    chatId: ChatId,
+    chatId: IdChatIdentifier,
     repo: DefaultAdminsCacheAPIRepo,
     botInfo: ExtendedBot? = null
 ): List<AdministratorChatMember> {
