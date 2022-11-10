@@ -7,8 +7,8 @@ import dev.inmo.tgbotapi.types.message.abstracts.GroupContentMessage
 import dev.inmo.tgbotapi.types.message.abstracts.Message
 
 interface AdminsCacheAPI {
-    suspend fun getChatAdmins(chatId: ChatId): List<AdministratorChatMember>?
-    suspend fun isAdmin(chatId: ChatId, userId: UserId): Boolean = getChatAdmins(chatId) ?.any {
+    suspend fun getChatAdmins(chatId: IdChatIdentifier): List<AdministratorChatMember>?
+    suspend fun isAdmin(chatId: IdChatIdentifier, userId: UserId): Boolean = getChatAdmins(chatId) ?.any {
         it.user.id == userId
     } == true
     suspend fun sentByAdmin(groupContentMessage: GroupContentMessage<*>): Boolean

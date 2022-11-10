@@ -6,6 +6,7 @@ import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.requests.DeleteMessage
 import dev.inmo.tgbotapi.requests.abstracts.FileId
 import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.MilliSeconds
 import dev.inmo.tgbotapi.types.message.content.MediaContent
 
@@ -14,7 +15,7 @@ fun interface MediaFileActualityChecker {
     suspend fun TelegramBot.saved(mediaContent: MediaContent) {}
 
     class Default(
-        private val checkingChatId: ChatId
+        private val checkingChatId: IdChatIdentifier
     ) : MediaFileActualityChecker {
         override suspend fun TelegramBot.isActual(mediaContent: MediaContent): Boolean {
             return runCatching {

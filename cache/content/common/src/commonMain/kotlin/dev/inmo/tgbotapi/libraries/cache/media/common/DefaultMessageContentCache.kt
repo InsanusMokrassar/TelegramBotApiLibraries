@@ -4,7 +4,7 @@ import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.requests.DownloadFileStream
 import dev.inmo.tgbotapi.requests.get.GetFile
 import dev.inmo.tgbotapi.requests.send.media.*
-import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.media.*
 import dev.inmo.tgbotapi.types.message.content.MediaContent
 import dev.inmo.tgbotapi.types.message.content.MessageContent
@@ -13,7 +13,7 @@ import io.ktor.utils.io.core.Input
 
 class DefaultMessageContentCache<K>(
     private val bot: TelegramBot,
-    private val filesRefreshingChatId: ChatId,
+    private val filesRefreshingChatId: IdChatIdentifier,
     private val simpleMessageContentCache: MessagesSimpleCache<K>,
     private val mediaFileActualityChecker: MediaFileActualityChecker = MediaFileActualityChecker.WithDelay(
         MediaFileActualityChecker.Default(filesRefreshingChatId)
@@ -111,7 +111,7 @@ class DefaultMessageContentCache<K>(
     companion object {
         operator fun invoke(
             bot: TelegramBot,
-            filesRefreshingChatId: ChatId,
+            filesRefreshingChatId: IdChatIdentifier,
             simpleMessageContentCache: MessagesSimpleCache<String> = InMemoryMessagesSimpleCache(),
             mediaFileActualityChecker: MediaFileActualityChecker = MediaFileActualityChecker.WithDelay(
                 MediaFileActualityChecker.Default(filesRefreshingChatId)

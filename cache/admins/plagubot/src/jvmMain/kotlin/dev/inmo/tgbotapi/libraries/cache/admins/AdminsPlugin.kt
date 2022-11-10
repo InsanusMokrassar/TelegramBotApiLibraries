@@ -55,7 +55,7 @@ class AdminsPlugin : Plugin {
                     { long("chatId") },
                     { text("member") },
                     "AdminsTable"
-                ).withMapper<ChatId, AdministratorChatMember, Identifier, String>(
+                ).withMapper<IdChatIdentifier, AdministratorChatMember, Identifier, String>(
                     keyFromToTo = { chatId },
                     valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(this) },
                     keyToToFrom = { toChatId() },
@@ -66,7 +66,7 @@ class AdminsPlugin : Plugin {
                     { long("chatId") },
                     { long("datetime") },
                     "AdminsUpdatesTimesTable"
-                ).withMapper<ChatId, Long, Identifier, Long>(
+                ).withMapper<IdChatIdentifier, Long, Identifier, Long>(
                     keyFromToTo = { chatId },
                     valueFromToTo = { this },
                     keyToToFrom = { toChatId() },
@@ -82,7 +82,7 @@ class AdminsPlugin : Plugin {
                     { long("chatId") },
                     { text("settings") },
                     "DynamicAdminsCacheSettingsAPI"
-                ).withMapper<ChatId, AdminsCacheSettings, Identifier, String>(
+                ).withMapper<IdChatIdentifier, AdminsCacheSettings, Identifier, String>(
                     keyFromToTo = { chatId },
                     valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(this) },
                     keyToToFrom = { toChatId() },

@@ -1,6 +1,6 @@
 package dev.inmo.tgbotapi.libraries.cache.admins
 
-import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.UserId
 import dev.inmo.tgbotapi.types.message.abstracts.*
 
@@ -13,7 +13,7 @@ suspend inline fun AdminsCacheAPI.isAdmin(message: Message) = when (message) {
 suspend inline fun AdminsCacheAPI.verifyMessageFromAdmin(message: Message) = isAdmin(message)
 
 suspend inline fun <R : Any> AdminsCacheAPI.doIfAdmin(
-    chatId: ChatId,
+    chatId: IdChatIdentifier,
     userId: UserId,
     block: () -> R
 ) = if(isAdmin(chatId, userId)) {
