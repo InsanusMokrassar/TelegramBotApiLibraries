@@ -1,0 +1,17 @@
+plugins {
+    id "org.jetbrains.kotlin.multiplatform"
+    id "org.jetbrains.kotlin.plugin.serialization"
+}
+
+apply from: "$mppJavaWithJsProjectPath"
+
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api "dev.inmo:tgbotapi.core:$tgbotapi_version"
+            }
+        }
+    }
+}
+
