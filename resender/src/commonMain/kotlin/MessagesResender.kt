@@ -18,19 +18,19 @@ class MessagesResender(
         targetChatId: IdChatIdentifier,
         messagesInfo: List<MessageMetaInfo>
     ): List<Pair<MessageMetaInfo, MessageMetaInfo>> {
-        val orders = messagesInfo.mapIndexed { i, messageInfo -> messageInfo to i }.toMap()
-        val sortedMessagesContents = messagesInfo.groupBy { it.group }.flatMap { (group, list) ->
+        val messagesWithOrders = messagesInfo.mapIndexed { i, messageInfo -> messageInfo to i }.toMap()
+        val ordersWithMessagesGroups = messagesInfo.groupBy { it.group }.flatMap { (group, list) ->
             if (group == null) {
                 list.map {
-                    orders.getValue(it) to listOf(it)
+                    messagesWithOrders.getValue(it) to listOf(it)
                 }
             } else {
-                listOf(orders.getValue(list.first()) to list)
+                listOf(messagesWithOrders.getValue(list.first()) to list)
             }
         }.sortedBy { it.first }
 
-        return sortedMessagesContents.flatMap { (_, contents) ->
-            val result = mutableListOf<Pair<MessageMetaInfo, MessageMetaInfo>>()
+        return ordersWithMessagesGroups.flatMap { (_, contents) ->
+            val sourceMessagesToSentMessages = mutableListOf<Pair<MessageMetaInfo, MessageMetaInfo>>()
 
             when {
                 contents.size == 1 -> {
@@ -88,7 +88,7 @@ class MessagesResender(
                             it as ContentMessage<MediaGroupPartContent>
                         }
                         src to (forwardedMessageAsMediaPartMessage ?: null.also { _ ->
-                            result.add(
+                            sourceMessagesToSentMessages.add(
                                 src to MessageMetaInfo(
                                     targetChatId,
                                     bot.execute(
@@ -104,7 +104,7 @@ class MessagesResender(
                     }
 
                     resultContents.singleOrNull() ?.also { (src, it) ->
-                        result.add(
+                        sourceMessagesToSentMessages.add(
                             src to MessageMetaInfo(
                                 targetChatId,
                                 bot.execute(
@@ -124,7 +124,7 @@ class MessagesResender(
                             )
                         ).content.group.mapIndexed { i, partWrapper ->
                             it.getOrNull(i) ?.let {
-                                result.add(
+                                sourceMessagesToSentMessages.add(
                                     it.first to MessageMetaInfo(
                                         partWrapper.sourceMessage.chat.id,
                                         partWrapper.sourceMessage.messageId,
@@ -137,7 +137,7 @@ class MessagesResender(
                 }
             }
 
-            result.toList()
+            sourceMessagesToSentMessages.toList()
         }
 
     }
