@@ -7,6 +7,8 @@ String[] includes = [
 
     ":cache:content:common",
     ":cache:content:micro_utils",
+
+    ":resender",
 ]
 
 
