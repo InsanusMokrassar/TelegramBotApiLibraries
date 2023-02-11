@@ -68,7 +68,7 @@ class MessagesResender(
                             )
                         }
                     }.getOrNull() ?.let {
-                        messageInfo to it
+                        sourceMessagesToSentMessages.add(messageInfo to it)
                     }
                 }
                 else -> {
