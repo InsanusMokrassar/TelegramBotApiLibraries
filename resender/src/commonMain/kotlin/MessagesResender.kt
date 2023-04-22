@@ -16,7 +16,8 @@ class MessagesResender(
 ) {
     suspend fun resend(
         targetChatId: IdChatIdentifier,
-        messagesInfo: List<MessageMetaInfo>
+        messagesInfo: List<MessageMetaInfo>,
+        onBetweenMessages: suspend (sent: List<MessageMetaInfo>, toBeSent: List<MessageMetaInfo>) -> Unit
     ): List<Pair<MessageMetaInfo, MessageMetaInfo>> {
         val messagesWithOrders = messagesInfo.mapIndexed { i, messageInfo -> messageInfo to i }.toMap()
         val ordersWithMessagesGroups = messagesInfo.groupBy { it.group }.flatMap { (group, list) ->
@@ -29,8 +30,13 @@ class MessagesResender(
             }
         }.sortedBy { it.first }
 
+        val sent = mutableListOf<MessageMetaInfo>()
+        val leftToSend = ordersWithMessagesGroups.map { it.second }.toMutableList()
+
         return ordersWithMessagesGroups.flatMap { (_, contents) ->
             val sourceMessagesToSentMessages = mutableListOf<Pair<MessageMetaInfo, MessageMetaInfo>>()
+
+            onBetweenMessages(sent.toList(), leftToSend.flatten())
 
             when {
                 contents.size == 1 -> {
@@ -137,8 +143,15 @@ class MessagesResender(
                 }
             }
 
+            leftToSend.takeIf { it.isNotEmpty() } ?.removeAt(0) ?.also {
+                sent.addAll(it)
+            }
             sourceMessagesToSentMessages.toList()
         }
-
     }
+
+    suspend fun resend(
+        targetChatId: IdChatIdentifier,
+        messagesInfo: List<MessageMetaInfo>
+    ): List<Pair<MessageMetaInfo, MessageMetaInfo>> = resend(targetChatId, messagesInfo) { _, _ -> }
 }
