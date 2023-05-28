@@ -1,6 +1,6 @@
 package dev.inmo.tgbotapi.libraries.cache.admins
 
-import com.soywiz.klock.minutes
+import korlibs.time.minutes
 import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.Seconds
 import kotlinx.coroutines.flow.SharedFlow

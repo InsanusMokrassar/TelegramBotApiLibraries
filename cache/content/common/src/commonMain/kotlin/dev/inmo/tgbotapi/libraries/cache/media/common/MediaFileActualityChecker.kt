@@ -1,7 +1,7 @@
 package dev.inmo.tgbotapi.libraries.cache.media.common
 
-import com.soywiz.klock.DateTime
-import com.soywiz.klock.milliseconds
+import korlibs.time.DateTime
+import korlibs.time.milliseconds
 import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.requests.DeleteMessage
 import dev.inmo.tgbotapi.requests.abstracts.FileId

@@ -1,6 +1,6 @@
 package dev.inmo.tgbotapi.libraries.cache.admins.micro_utils
 
-import com.soywiz.klock.DateTime
+import korlibs.time.DateTime
 import dev.inmo.micro_utils.coroutines.*
 import dev.inmo.micro_utils.repos.*
 import dev.inmo.tgbotapi.libraries.cache.admins.DefaultAdminsCacheAPIRepo
