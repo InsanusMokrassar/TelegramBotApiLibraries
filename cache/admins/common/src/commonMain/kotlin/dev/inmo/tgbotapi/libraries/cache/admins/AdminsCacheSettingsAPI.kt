@@ -3,6 +3,7 @@ package dev.inmo.tgbotapi.libraries.cache.admins
 import korlibs.time.minutes
 import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.Seconds
+import korlibs.time.seconds
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.serialization.Serializable
 

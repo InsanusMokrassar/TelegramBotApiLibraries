@@ -8,6 +8,7 @@ import dev.inmo.tgbotapi.types.*
 import dev.inmo.tgbotapi.types.chat.ExtendedBot
 import dev.inmo.tgbotapi.types.chat.member.AdministratorChatMember
 import dev.inmo.tgbotapi.types.message.abstracts.*
+import korlibs.time.seconds
 import kotlinx.serialization.Serializable
 
 interface DefaultAdminsCacheAPIRepo {
