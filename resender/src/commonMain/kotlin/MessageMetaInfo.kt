@@ -2,6 +2,7 @@ package dev.inmo.tgbotapi.libraries.resender
 
 import dev.inmo.tgbotapi.types.FullChatIdentifierSerializer
 import dev.inmo.tgbotapi.types.IdChatIdentifier
+import dev.inmo.tgbotapi.types.MediaGroupId
 import dev.inmo.tgbotapi.types.MessageId
 import dev.inmo.tgbotapi.types.message.abstracts.ContentMessage
 import dev.inmo.tgbotapi.types.message.abstracts.Message
@@ -14,7 +15,7 @@ data class MessageMetaInfo(
     @Serializable(FullChatIdentifierSerializer::class)
     val chatId: IdChatIdentifier,
     val messageId: MessageId,
-    val group: String? = null
+    val group: MediaGroupId? = null
 ) {
     val metaInfo: Message.MetaInfo
         get() = Message.MetaInfo(chatId, messageId)

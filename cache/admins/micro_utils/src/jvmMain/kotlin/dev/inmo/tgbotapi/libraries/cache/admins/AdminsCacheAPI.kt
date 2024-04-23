@@ -38,8 +38,8 @@ fun TelegramBot.createAdminsCacheAPI(
             { long("chatId") },
             { text("member") },
             "AdminsTable"
-        ).withMapper<IdChatIdentifier, AdministratorChatMember, Identifier, String>(
-            keyFromToTo = { chatId },
+        ).withMapper<IdChatIdentifier, AdministratorChatMember, Long, String>(
+            keyFromToTo = { chatId.long },
             valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(AdministratorChatMember.serializer(), this) },
             keyToToFrom = { toChatId() },
             valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(AdministratorChatMember.serializer(), this) }
@@ -49,8 +49,8 @@ fun TelegramBot.createAdminsCacheAPI(
             { long("chatId") },
             { long("datetime") },
             "AdminsUpdatesTimesTable"
-        ).withMapper<IdChatIdentifier, Long, Identifier, Long>(
-            keyFromToTo = { chatId },
+        ).withMapper<IdChatIdentifier, Long, Long, Long>(
+            keyFromToTo = { chatId.long },
             valueFromToTo = { this },
             keyToToFrom = { toChatId() },
             valueToToFrom = { this }
@@ -63,8 +63,8 @@ fun TelegramBot.createAdminsCacheAPI(
             { long("chatId") },
             { text("settings") },
             "DynamicAdminsCacheSettingsAPI"
-        ).withMapper<IdChatIdentifier, AdminsCacheSettings, Identifier, String>(
-            keyFromToTo = { chatId },
+        ).withMapper<IdChatIdentifier, AdminsCacheSettings, Long, String>(
+            keyFromToTo = { chatId.long },
             valueFromToTo = { telegramAdminsSerializationFormat.encodeToString(AdminsCacheSettings.serializer() , this) },
             keyToToFrom = { toChatId() },
             valueToToFrom = { telegramAdminsSerializationFormat.decodeFromString(AdminsCacheSettings.serializer() , this) }
