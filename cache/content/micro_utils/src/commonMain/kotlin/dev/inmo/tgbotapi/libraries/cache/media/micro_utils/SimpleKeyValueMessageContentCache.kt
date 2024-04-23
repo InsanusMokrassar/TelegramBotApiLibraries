@@ -4,7 +4,7 @@ import dev.inmo.micro_utils.repos.*
 import dev.inmo.micro_utils.repos.mappers.withMapper
 import dev.inmo.tgbotapi.libraries.cache.media.common.MessagesSimpleCache
 import dev.inmo.tgbotapi.types.ChatId
-import dev.inmo.tgbotapi.types.MessageIdentifier
+import dev.inmo.tgbotapi.types.MessageId
 import dev.inmo.tgbotapi.types.message.content.MessageContent
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.PairSerializer
@@ -47,7 +47,7 @@ class SimpleKeyValueMessageContentCache<K>(
 
 val chatIdToMessageIdentifierSerializer = PairSerializer(
     ChatId.serializer(),
-    MessageIdentifier.serializer()
+    MessageId.serializer()
 )
 
 val messageContentSerializer = PolymorphicSerializer<MessageContent>(MessageContent::class)
@@ -56,9 +56,9 @@ inline fun <K> KeyValueRepo<K, MessageContent>.asMessageContentCache() = SimpleK
 
 inline fun KeyValueRepo<String, String>.asMessageContentCache(
     serialFormatCreator: (SerializersModule) -> StringFormat = { Json { serializersModule = it } }
-): StandardKeyValueRepo<Pair<ChatId, MessageIdentifier>, MessageContent> {
+): StandardKeyValueRepo<Pair<ChatId, MessageId>, MessageContent> {
     val serialFormat = serialFormatCreator(MessageContent.serializationModule())
-    return withMapper<Pair<ChatId, MessageIdentifier>, MessageContent, String, String>(
+    return withMapper<Pair<ChatId, MessageId>, MessageContent, String, String>(
         { serialFormat.encodeToString(chatIdToMessageIdentifierSerializer, this) },
         { serialFormat.encodeToString(messageContentSerializer, this) },
         { serialFormat.decodeFromString(chatIdToMessageIdentifierSerializer, this) },
@@ -70,9 +70,9 @@ inline fun KeyValueRepo<String, String>.asMessageContentCache(
 @JsName("stringsKeyValueAsHexMessageContentCache")
 inline fun KeyValueRepo<String, String>.asMessageContentCache(
     serialFormatCreator: (SerializersModule) -> BinaryFormat
-): StandardKeyValueRepo<Pair<ChatId, MessageIdentifier>, MessageContent> {
+): StandardKeyValueRepo<Pair<ChatId, MessageId>, MessageContent> {
     val serialFormat = serialFormatCreator(MessageContent.serializationModule())
-    return withMapper<Pair<ChatId, MessageIdentifier>, MessageContent, String, String>(
+    return withMapper<Pair<ChatId, MessageId>, MessageContent, String, String>(
         { serialFormat.encodeToHexString(chatIdToMessageIdentifierSerializer, this) },
         { serialFormat.encodeToHexString(messageContentSerializer, this) },
         { serialFormat.decodeFromHexString(chatIdToMessageIdentifierSerializer, this) },
@@ -84,9 +84,9 @@ inline fun KeyValueRepo<String, String>.asMessageContentCache(
 @JsName("bytesKeyValueAsMessageContentCache")
 inline fun KeyValueRepo<ByteArray, ByteArray>.asMessageContentCache(
     serialFormatCreator: (SerializersModule) -> BinaryFormat
-): StandardKeyValueRepo<Pair<ChatId, MessageIdentifier>, MessageContent> {
+): StandardKeyValueRepo<Pair<ChatId, MessageId>, MessageContent> {
     val serialFormat = serialFormatCreator(MessageContent.serializationModule())
-    return withMapper<Pair<ChatId, MessageIdentifier>, MessageContent, ByteArray, ByteArray>(
+    return withMapper<Pair<ChatId, MessageId>, MessageContent, ByteArray, ByteArray>(
         { serialFormat.encodeToByteArray(chatIdToMessageIdentifierSerializer, this) },
         { serialFormat.encodeToByteArray(messageContentSerializer, this) },
         { serialFormat.decodeFromByteArray(chatIdToMessageIdentifierSerializer, this) },
