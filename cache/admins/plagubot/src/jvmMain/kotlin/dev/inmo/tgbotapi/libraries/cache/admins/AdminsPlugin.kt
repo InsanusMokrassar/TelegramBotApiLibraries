@@ -4,6 +4,7 @@ import dev.inmo.micro_utils.repos.exposed.keyvalue.ExposedKeyValueRepo
 import dev.inmo.micro_utils.repos.exposed.onetomany.ExposedKeyValuesRepo
 import dev.inmo.micro_utils.repos.mappers.withMapper
 import dev.inmo.plagubot.Plugin
+import dev.inmo.plagubot.database
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContext
 import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DefaultAdminsCacheAPIRepoImpl
 import dev.inmo.tgbotapi.libraries.cache.admins.micro_utils.DynamicAdminsCacheSettingsAPI
@@ -44,7 +45,7 @@ class AdminsPlugin : Plugin {
         return flow.filterNotNull().first()
     }
 
-    override fun Module.setupDI(database: Database, params: JsonObject) {
+    override fun Module.setupDI(config: JsonObject) {
         single { this@AdminsPlugin }
         val scopeQualifier = named("admins plugin scope")
         single(scopeQualifier) { CoroutineScope(Dispatchers.IO + SupervisorJob()) }
