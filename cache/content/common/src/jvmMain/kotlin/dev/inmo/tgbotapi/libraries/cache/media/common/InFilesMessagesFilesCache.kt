@@ -3,8 +3,7 @@ package dev.inmo.tgbotapi.libraries.cache.media.common
 import dev.inmo.tgbotapi.requests.abstracts.MultipartFile
 import io.ktor.utils.io.core.Input
 import io.ktor.utils.io.core.copyTo
-import io.ktor.utils.io.streams.asInput
-import io.ktor.utils.io.streams.asOutput
+import io.ktor.utils.io.streams.*
 import java.io.File
 
 class InFilesMessagesFilesCache<K>(
@@ -39,8 +38,8 @@ class InFilesMessagesFilesCache<K>(
         val file = File(folderFile, fullFileName).apply {
             delete()
         }
-        inputAllocator().use { input ->
-            file.outputStream().asOutput().use { output ->
+        inputAllocator().inputStream().use { input ->
+            file.outputStream().use { output ->
                 input.copyTo(output)
             }
         }
