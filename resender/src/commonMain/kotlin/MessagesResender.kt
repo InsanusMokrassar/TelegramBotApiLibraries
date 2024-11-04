@@ -49,9 +49,9 @@ class MessagesResender(
                             targetChatId,
                             bot.execute(
                                 CopyMessage(
-                                    targetChatId,
+                                    toChatId = targetChatId,
                                     fromChatId = messageInfo.chatId,
-                                    messageId = messageInfo.messageId
+                                    messageId = messageInfo.messageId,
                                 )
                             )
                         )
@@ -69,7 +69,7 @@ class MessagesResender(
                                 targetChatId,
                                 bot.execute(
                                     CopyMessage(
-                                        targetChatId,
+                                        toChatId = targetChatId,
                                         fromChatId = it.chat.id,
                                         messageId = it.messageId
                                     )
@@ -102,7 +102,7 @@ class MessagesResender(
                                     targetChatId,
                                     bot.execute(
                                         CopyMessage(
-                                            targetChatId,
+                                            toChatId = targetChatId,
                                             fromChatId = forwardedMessage.chat.id,
                                             messageId = forwardedMessage.messageId
                                         )
@@ -118,9 +118,9 @@ class MessagesResender(
                                 targetChatId,
                                 bot.execute(
                                     CopyMessage(
-                                        targetChatId,
-                                        it.chat.id,
-                                        it.messageId
+                                        toChatId = targetChatId,
+                                        fromChatId = it.chat.id,
+                                        messageId = it.messageId
                                     )
                                 )
                             )
