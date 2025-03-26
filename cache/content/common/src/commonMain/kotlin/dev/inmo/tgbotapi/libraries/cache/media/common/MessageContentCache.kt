@@ -12,6 +12,11 @@ interface MessageContentCache<K> {
         filename: String,
         inputAllocator: suspend () -> Input
     )
+    suspend fun sendAndSave(
+        k: K,
+        filename: String,
+        inputAllocator: () -> Input
+    )
 
     suspend fun get(k: K): MessageContent?
     suspend fun contains(k: K): Boolean

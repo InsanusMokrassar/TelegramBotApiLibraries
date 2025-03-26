@@ -2,6 +2,7 @@ package dev.inmo.tgbotapi.libraries.cache.media.common
 
 import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.requests.DownloadFileStream
+import dev.inmo.tgbotapi.requests.abstracts.MultipartFile
 import dev.inmo.tgbotapi.requests.get.GetFile
 import dev.inmo.tgbotapi.requests.send.media.*
 import dev.inmo.tgbotapi.types.IdChatIdentifier
@@ -56,6 +57,20 @@ class DefaultMessageContentCache<K>(
                 bot.saved(content)
             }
         }
+    }
+
+    override suspend fun sendAndSave(
+        k: K,
+        filename: String,
+        inputAllocator: () -> Input
+    ) {
+        val sentDocument = bot.execute(
+            SendDocument(
+                filesRefreshingChatId,
+                MultipartFile(filename, inputAllocator),
+            )
+        )
+        save(k, sentDocument.content, filename, inputAllocator)
     }
 
     override suspend fun get(k: K): MessageContent? {
