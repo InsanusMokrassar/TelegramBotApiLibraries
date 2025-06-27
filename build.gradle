@@ -10,12 +10,11 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
-        classpath "com.gradleup.nmcp.aggregation:$nmcp_version"
     }
 }
 
 plugins {
-    id "com.gradleup.nmcp.aggregation"
+    id "com.gradleup.nmcp.aggregation" version "$nmcp_version"
 }
 
 if ((project.hasProperty('SONATYPE_USER') || System.getenv('SONATYPE_USER') != null) && (project.hasProperty('SONATYPE_PASSWORD') || System.getenv('SONATYPE_PASSWORD') != null)) {
