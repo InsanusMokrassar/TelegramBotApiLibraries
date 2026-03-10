@@ -34,7 +34,7 @@ class DefaultAdminsCacheAPIRepoImpl(
     private val scope: CoroutineScope
 ) : DefaultAdminsCacheAPIRepo {
     private val actor = scope.actorAsync<RepoActions<*>>(Channel.UNLIMITED) {
-        safelyWithoutExceptions(
+        runCatchingLogging (
             { e ->
                 it.deferred.completeExceptionally(e)
             }

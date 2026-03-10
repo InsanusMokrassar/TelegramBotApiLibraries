@@ -16,7 +16,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonObject
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.koin.core.Koin
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named

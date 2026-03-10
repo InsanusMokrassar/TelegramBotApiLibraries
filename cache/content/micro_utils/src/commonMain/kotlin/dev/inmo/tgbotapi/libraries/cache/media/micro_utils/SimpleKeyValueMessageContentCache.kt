@@ -1,3 +1,5 @@
+@file:Suppress("RemoveExplicitTypeArguments", "unused")
+
 package dev.inmo.tgbotapi.libraries.cache.media.micro_utils
 
 import dev.inmo.micro_utils.repos.*
@@ -8,7 +10,6 @@ import dev.inmo.tgbotapi.types.MessageId
 import dev.inmo.tgbotapi.types.message.content.MessageContent
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.PairSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlin.js.JsName
@@ -52,11 +53,12 @@ val chatIdToMessageIdentifierSerializer = PairSerializer(
 
 val messageContentSerializer = PolymorphicSerializer<MessageContent>(MessageContent::class)
 
-inline fun <K> KeyValueRepo<K, MessageContent>.asMessageContentCache() = SimpleKeyValueMessageContentCache(this)
+fun <K> KeyValueRepo<K, MessageContent>.asMessageContentCache() = SimpleKeyValueMessageContentCache(this)
 
 inline fun KeyValueRepo<String, String>.asMessageContentCache(
     serialFormatCreator: (SerializersModule) -> StringFormat = { Json { serializersModule = it } }
 ): StandardKeyValueRepo<Pair<ChatId, MessageId>, MessageContent> {
+    @Suppress("OPT_IN_USAGE")
     val serialFormat = serialFormatCreator(MessageContent.serializationModule())
     return withMapper<Pair<ChatId, MessageId>, MessageContent, String, String>(
         { serialFormat.encodeToString(chatIdToMessageIdentifierSerializer, this) },
@@ -71,6 +73,7 @@ inline fun KeyValueRepo<String, String>.asMessageContentCache(
 inline fun KeyValueRepo<String, String>.asMessageContentCache(
     serialFormatCreator: (SerializersModule) -> BinaryFormat
 ): StandardKeyValueRepo<Pair<ChatId, MessageId>, MessageContent> {
+    @Suppress("OPT_IN_USAGE")
     val serialFormat = serialFormatCreator(MessageContent.serializationModule())
     return withMapper<Pair<ChatId, MessageId>, MessageContent, String, String>(
         { serialFormat.encodeToHexString(chatIdToMessageIdentifierSerializer, this) },
@@ -85,6 +88,7 @@ inline fun KeyValueRepo<String, String>.asMessageContentCache(
 inline fun KeyValueRepo<ByteArray, ByteArray>.asMessageContentCache(
     serialFormatCreator: (SerializersModule) -> BinaryFormat
 ): StandardKeyValueRepo<Pair<ChatId, MessageId>, MessageContent> {
+    @Suppress("OPT_IN_USAGE")
     val serialFormat = serialFormatCreator(MessageContent.serializationModule())
     return withMapper<Pair<ChatId, MessageId>, MessageContent, ByteArray, ByteArray>(
         { serialFormat.encodeToByteArray(chatIdToMessageIdentifierSerializer, this) },
