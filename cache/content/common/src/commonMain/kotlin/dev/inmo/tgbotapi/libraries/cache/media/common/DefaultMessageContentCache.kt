@@ -92,7 +92,7 @@ class DefaultMessageContentCache<K>(
         if (savedSimpleContent is MediaContent && !with(mediaFileActualityChecker) { bot.isActual(savedSimpleContent) }) {
             val savedFileContentAllocator = messagesFilesCache.get(k) ?: error("Unexpected absence of $k file for content ($simpleMessageContentCache)")
             val newContent = bot.execute(
-                when (savedSimpleContent.asTelegramMedia()) {
+                when (val content = savedSimpleContent.asTelegramMedia()) {
                     is TelegramMediaAnimation -> SendAnimation(
                         filesRefreshingChatId,
                         savedFileContentAllocator,
@@ -118,9 +118,10 @@ class DefaultMessageContentCache<K>(
                         savedFileContentAllocator,
                         disableNotification = true
                     )
-                    is TelegramMediaLivePhoto -> SendPhoto(
-                        filesRefreshingChatId,
-                        savedFileContentAllocator,
+                    is TelegramMediaLivePhoto -> SendLivePhoto(
+                        chatId = filesRefreshingChatId,
+                        livePhoto = content.file,
+                        photo = content.photo,
                         disableNotification = true
                     )
                 }
