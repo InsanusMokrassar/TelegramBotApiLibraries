@@ -118,6 +118,11 @@ class DefaultMessageContentCache<K>(
                         savedFileContentAllocator,
                         disableNotification = true
                     )
+                    is TelegramMediaLivePhoto -> SendPhoto(
+                        filesRefreshingChatId,
+                        savedFileContentAllocator,
+                        disableNotification = true
+                    )
                 }
             )
 
