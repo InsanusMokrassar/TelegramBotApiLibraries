@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.31.0
+
+* `Kotlin`: `2.3.21`
+* `MicroUtils`: `0.30.0`
+* `Exposed`: `1.3.1`
+* `PlaguBot`: `12.0.0`
+* `TgBotAPI`: `35.1.0`
+* `Serialization`: `1.11.0`
+
 ## 0.30.0
 
 * `Kotlin`: `2.3.20`
