@@ -7,7 +7,7 @@
 * `MicroUtils`: `0.32.0`
 * `Exposed`: `1.5.1`
 * `NMCP`: `1.6.2`
-* `TgBotAPI`: `38.0.0`
+* `TgBotAPI`: `37.1.0`
 * `PlaguBot`: `14.0.0`
 
 ## 0.32.0
