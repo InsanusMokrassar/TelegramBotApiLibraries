@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.33.0
+
 ## 0.32.0
 
 * `MicroUtils`: `0.30.1`
