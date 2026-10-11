@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.33.0
+
+* `Kotlin`: `2.4.21`
+* `Gradle`: `9.7.0`
+* `MicroUtils`: `0.32.0`
+* `Exposed`: `1.5.1`
+* `NMCP`: `1.6.2`
+* `TgBotAPI`: `37.1.0`
+* `PlaguBot`: `14.0.0`
+
 ## 0.32.0
 
 * `MicroUtils`: `0.30.1`
